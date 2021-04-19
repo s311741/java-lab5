@@ -20,6 +20,15 @@ public abstract class Cmd {
 		cmdsByName.put("clear", CmdClear.class);
 		cmdsByName.put("show", CmdShow.class);
 		cmdsByName.put("save", CmdSave.class);
+		cmdsByName.put("execute_script", CmdExecuteScript.class);
+		cmdsByName.put("info", CmdInfo.class);
+		cmdsByName.put("update_id", CmdUpdateID.class);
+		cmdsByName.put("remove_by_id", CmdRemoveByID.class);
+		cmdsByName.put("add_if_min", CmdAddIfMin.class);
+		cmdsByName.put("remove_lower", CmdRemoveLower.class);
+		cmdsByName.put("count_greater_than_furnish", CmdCountGreaterThanFurnish.class);
+		cmdsByName.put("sum_of_number_of_rooms", CmdSumNumberOfRooms.class);
+		cmdsByName.put("filter_by_house", CmdFilterByHouse.class);
 	}
 
 	private static final Class[] CMD_CTOR_ARGS_NOELEM = { String[].class };

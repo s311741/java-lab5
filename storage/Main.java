@@ -18,7 +18,9 @@ public class Main {
 
 		try {
 			while ((cmd = Cmd.next(prompter)) != null) {
-				cmd.run();
+				if (!cmd.run()) {
+					System.err.println("The command failed");
+				}
 			}
 		} catch (IOException e) {
 			System.err.println(e.getMessage());

@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Iterator;
+import java.util.HashMap;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,9 +17,13 @@ public final class Storage implements Iterable<Flat> {
 	public static final String FILENAME = "db.json";
 
 	private LinkedHashSet<Flat> set = new LinkedHashSet<Flat>();
+	private HashMap<Integer, Flat> setValuesByID = new HashMap<Integer, Flat>();
+	private Flat currentMinimum = null;
 	private int idGen = 0;
 
-	public int getNextId () { return idGen++; }
+	public int nextID () {
+		return idGen++;
+	}
 
 	public static Storage getStorage () {
 		if (instance == null) {
@@ -28,11 +33,49 @@ public final class Storage implements Iterable<Flat> {
 	}
 
 	public boolean add (Flat element) {
-		return this.set.add(element);
+		boolean result = this.set.add(element);
+		if (this.currentMinimum == null || element.compareTo(this.currentMinimum) < 0) {
+			this.currentMinimum = element;
+		}
+		this.setValuesByID.put(element.getID(), element);
+		return result;
+	}
+
+	public boolean removeByID (int id) {
+		Flat element = this.setValuesByID.get(id);
+		if (element == null) {
+			return false;
+		}
+		this.setValuesByID.remove(id);
+		this.set.remove(element);
+
+		if (element == this.currentMinimum) {
+			this.findNewMinimum();
+		}
+		return true;
+
+	}
+
+	public boolean removeByReference (Flat flat) {
+		if (!this.set.contains(flat)) {
+			return false;
+		}
+		this.setValuesByID.remove(flat.getID());
+		this.set.remove(flat);
+
+		if (flat == this.currentMinimum) {
+			this.findNewMinimum();
+		}
+		return true;
 	}
 
 	public void clear () {
+		this.currentMinimum = null;
 		this.set.clear();
+	}
+
+	public Flat getCurrentMinimum () {
+		return this.currentMinimum;
 	}
 
 	@Override
@@ -50,7 +93,7 @@ public final class Storage implements Iterable<Flat> {
 		db.put("idGen", this.idGen);
 		db.put("db", ja);
 
-		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(FILENAME),"UTF-8");
+		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(FILENAME), "UTF-8");
 		w.write(db.toString());
 		w.close();
 	}
@@ -81,6 +124,15 @@ public final class Storage implements Iterable<Flat> {
 			System.err.println("Couldn\'t populate storage: the file " + FILENAME + " cannot be read");
 		} catch (JSONException e) {
 			System.err.println("Couldn\'t populate storage: The file " + FILENAME + " contains invalid JSON");
+		}
+	}
+
+	private void findNewMinimum () {
+		this.currentMinimum = null;
+		for (Flat flat: this) {
+			if (this.currentMinimum == null || flat.compareTo(this.currentMinimum) < 0) {
+				this.currentMinimum = flat;
+			}
 		}
 	}
 }

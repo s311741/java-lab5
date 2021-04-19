@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 import org.json.JSONObject;
 import org.json.JSONException;
 
-public final class Flat {
+public final class Flat implements Comparable<Flat> {
 	private Integer id;
 	private String name;
 	private Coordinates coordinates;
@@ -24,7 +24,7 @@ public final class Flat {
 	public static Flat next (Prompter prompt) throws IOException, PrompterInputAbortedException {
 		Flat result = new Flat();
 
-		result.id = Storage.getStorage().getNextId();
+		result.id = Storage.getStorage().nextID();
 		result.creationDate = new Date();
 
 		result.name = prompt.nextLine("name (nonempty): ", s -> !s.isEmpty());
@@ -45,6 +45,12 @@ public final class Flat {
 
 		return result;
 	}
+
+	public Integer getID () { return this.id; }
+	public void setID (int id) { this.id = id; }
+
+	public Furnish getFurnish () { return this.furnish; }
+	public Long getNumberOfRooms () { return this.numberOfRooms; }
 
 	@Override
 	public String toString () {
@@ -96,23 +102,17 @@ public final class Flat {
 		result.numberOfRooms = jo.getLong("numberOfRooms");
 
 		try {
-			result.furnish = Enum.valueOf(Furnish.class, jo.getString("furnish").toUpperCase());
-		} catch (JSONException e) {
-			result.furnish = null;
-		} catch (IllegalArgumentException e) {
-			return null;
-		}
-
-		try {
+			try {
+				result.furnish = Enum.valueOf(Furnish.class, jo.getString("furnish").toUpperCase());
+			} catch (JSONException e) {
+				result.furnish = null;
+			}
 			result.view = Enum.valueOf(View.class, jo.getString("view").toUpperCase());
-		} catch (IllegalArgumentException e) {
-			return null;
-		}
-
-		try {
-			result.transport = Enum.valueOf(Transport.class, jo.getString("transport").toUpperCase());
-		} catch (JSONException e) {
-			result.transport = null;
+			try {
+				result.transport = Enum.valueOf(Transport.class, jo.getString("transport").toUpperCase());
+			} catch (JSONException e) {
+				result.transport = null;
+			}
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
@@ -120,5 +120,22 @@ public final class Flat {
 		result.house = House.fromJson(jo.getJSONObject("house"));
 
 		return result;
+	}
+
+	@Override
+	public int compareTo (Flat other) {
+		if (this.area != other.area) {
+			return (int) (this.area - other.area);
+		}
+		if (this.numberOfRooms != other.numberOfRooms) {
+			return (int) (this.numberOfRooms - other.numberOfRooms);
+		}
+		if (this.furnish != other.furnish) {
+			return this.furnish.ordinal() - other.furnish.ordinal();
+		}
+		if (this.transport != other.transport) {
+			return this.transport.ordinal() - other.transport.ordinal();
+		}
+		return 0;
 	}
 }

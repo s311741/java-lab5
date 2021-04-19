@@ -31,9 +31,7 @@ public final class CmdHistory extends Cmd {
 
 		private int getSize () { return this.size; }
 
-		/**
-		 * Invalidates iterators
-		 */
+		/* Invalidates iterators! */
 		public void push (String s) {
 			if (this.size < this.capacity) {
 				this.size++;
