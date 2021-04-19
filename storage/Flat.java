@@ -35,9 +35,20 @@ public class Flat {
 
 		result.id = nextID++;
 		result.name = prompt.nextLine("name (nonempty): ", s -> !s.isEmpty());
+
+		prompt.pushPrefix("coordinate ");
+		result.coordinates = Coordinates.next(prompt);
+		prompt.popPrefix();
+
 		result.area = prompt.nextLong("area (> 0): ", n -> n > 0);
 		result.numberOfRooms = prompt.nextLong("number of rooms (> 0): ", n -> n > 0);
-		result.furnish = prompt.nextEnum("furnish: ", Furnish.class, f -> true);
+		result.furnish = prompt.nextEnum("furnish: ", Furnish.class, true);
+		result.view = prompt.nextEnum("view: ", View.class, false);
+		result.transport = prompt.nextEnum("transport: ", Transport.class, true);
+
+		prompt.pushPrefix("house ");
+		result.house = House.next(prompt);
+		prompt.popPrefix();
 
 		return result;
 	}

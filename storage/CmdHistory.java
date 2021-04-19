@@ -8,7 +8,8 @@ public final class CmdHistory extends Cmd {
 
 	@Override
 	public boolean run () {
-		System.out.println("Last " + Integer.toString(history.getSize()) + " commands:");
+		System.out.println("Last " + Integer.toString(history.getSize()) +
+		                   " commands (latest first):");
 		for (String s: history) {
 			System.out.println(s);
 		}

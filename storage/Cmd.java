@@ -16,6 +16,8 @@ public abstract class Cmd {
 		cmdsByName.put("help", CmdHelp.class);
 		cmdsByName.put("add", CmdAdd.class);
 		cmdsByName.put("history", CmdHistory.class);
+		cmdsByName.put("exit", CmdExit.class);
+		cmdsByName.put("clear", CmdClear.class);
 	}
 
 	private static final Class[] CMD_CTOR_ARGS_NOELEM = { String[].class };

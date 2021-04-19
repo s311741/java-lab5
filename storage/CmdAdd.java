@@ -5,7 +5,6 @@ public final class CmdAdd extends ElemCmd {
 
 	@Override
 	public boolean run () {
-		// return Storage.getInstance().add(this.element);
-		return true;
+		return Storage.getStorage().add(this.element);
 	}
 }
