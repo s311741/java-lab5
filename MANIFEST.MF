@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: storage.Main
+Class-Path: . json-java.jar app.jar
+Sealed: true

@@ -14,6 +14,8 @@ public class Main {
 				new OutputStreamWriter(System.out));
 		Cmd cmd;
 
+		Storage.getStorage().tryPopulateFromFile();
+
 		try {
 			while ((cmd = Cmd.next(prompter)) != null) {
 				cmd.run();

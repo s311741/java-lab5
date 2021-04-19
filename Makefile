@@ -1,17 +1,15 @@
-CLASSPATH = .
+CLASSPATH = .:./json-java.jar:./app.jar
+
 JAVAC = javac
 JAVA = java
+JAR = jar
 
-PACKAGE = storage
+FILES_JAVA := $(shell find storage -type f -name '*.java')
 
-FILES_JAVA := $(shell find . -type f -name '*.java')
-FILES_CLASS := $(FILES_JAVA:%.java=%.class)
-
-all: $(FILES_CLASS)
+all: all_classes
 
 run: all
-	$(JAVA) -classpath $(CLASSPATH) $(PACKAGE)/Main
+	$(JAVA) -classpath $(CLASSPATH) storage/Main
 
-%.class: %.java
-	$(JAVAC) -classpath $(CLASSPATH) $<
-
+all_classes: $(FILES_JAVA)
+	$(JAVAC) -classpath $(CLASSPATH) storage/*.java

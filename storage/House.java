@@ -1,6 +1,8 @@
 package storage;
 
 import java.io.IOException;
+import org.json.JSONObject;
+import org.json.JSONException;
 
 public class House {
 	private String name;
@@ -8,18 +10,40 @@ public class House {
 	private int numberOfFlatsOnFloor;
 	private Long numberOfLifts;
 
-	private boolean invariant () {
-		return year > 0 && year < 699
-		    && numberOfFlatsOnFloor > 0
-		    && numberOfLifts != null && numberOfLifts > 0;
+	public static House next (Prompter prompt) throws IOException, PrompterInputAbortedException {
+		House result = new House();
+		result.name = prompt.nextLine("name: ");
+		result.year = (int) (long) prompt.nextLong("year: ", n -> n > 0 && n <= 699);
+		result.numberOfFlatsOnFloor = (int) (long) prompt.nextLong("flats per floor: ", n -> n > 0);
+		result.numberOfLifts = prompt.nextLong("number of lifts: ", n -> n > 0);
+		return result;
 	}
 
-	public static House next (Prompter prompt) throws IOException, PrompterInputAbortedException {
-		House house = new House();
-		house.name = prompt.nextLine("name: ");
-		house.year = (int) (long) prompt.nextLong("year: ", n -> n > 0 && n <= 699);
-		house.numberOfFlatsOnFloor = (int) (long) prompt.nextLong("flats per floor: ", n -> n > 0);
-		house.numberOfLifts = prompt.nextLong("number of lifts: ", n -> n > 0);
-		return house;
+	@Override
+	public String toString () {
+		return "(House, name: " + this.name +
+		     ", year: " + this.year.toString() +
+		     ", flats per floor: " + Integer.toString(this.numberOfFlatsOnFloor) +
+		     ", lifts: " + this.numberOfLifts.toString() + ")";
+	}
+
+	public JSONObject toJson () {
+		JSONObject jo = new JSONObject();
+		jo.put("name", this.name);
+		jo.put("year", this.year);
+		jo.put("numberOfFlatsOnFloor", this.numberOfFlatsOnFloor);
+		jo.put("numberOfLifts", this.numberOfLifts);
+		return jo;
+	}
+
+	public static House fromJson (JSONObject jo) throws JSONException {
+		House result = new House();
+
+		result.name = jo.getString("name");
+		result.year = jo.getInt("year");
+		result.numberOfFlatsOnFloor = jo.getInt("numberOfFlatsOnFloor");
+		result.numberOfLifts = jo.getLong("numberOfLifts");
+
+		return result;
 	}
 }
