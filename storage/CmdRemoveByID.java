@@ -1,7 +1,11 @@
 package storage;
 
+/**
+ * remove_by_id: remove an element with given ID, if any
+ * ID must be given as an argument
+ */
 public final class CmdRemoveByID extends Cmd {
-	public CmdRemoveByID (String[] arguments) { super(arguments); }
+	public CmdRemoveByID (String[] a, Prompter p) { super(a, p); }
 
 	@Override
 	public boolean run () {

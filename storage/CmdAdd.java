@@ -1,10 +1,19 @@
 package storage;
 
-public final class CmdAdd extends ElemCmd {
-	public CmdAdd (String[] arguments, Flat elem) { super(arguments, elem); }
+/**
+ * add: add an element
+ * Input of the element required
+ */
+public final class CmdAdd extends Cmd {
+	public CmdAdd (String[] a, Prompter p) { super(a, p); }
 
 	@Override
 	public boolean run () {
-		return Storage.getStorage().add(this.element);
+		try {
+			Flat element = Flat.next(this.prompter);
+			return Storage.getStorage().add(element);
+		} catch (PrompterInputAbortedException e) {
+			return false;
+		}
 	}
 }

@@ -1,7 +1,12 @@
 package storage;
 
+/**
+ * help: print out a help message
+ * Success status depends on whether the command was actually invoked as "help" (success),
+ * or whether this invocation is a result of the user entering an unknown command (failure)
+ */
 public final class CmdHelp extends Cmd {
-	public CmdHelp (String[] arguments) { super(arguments); }
+	public CmdHelp (String[] a, Prompter p) { super(a, p); }
 
 	private static final String HELP_MESSAGE =
 		"commands:\n" +

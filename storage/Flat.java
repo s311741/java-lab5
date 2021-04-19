@@ -9,6 +9,9 @@ import java.text.SimpleDateFormat;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+/**
+ * The subject matter of the collection, a representation of some real estate.
+ */
 public final class Flat implements Comparable<Flat> {
 	private Integer id;
 	private String name;
@@ -21,10 +24,23 @@ public final class Flat implements Comparable<Flat> {
 	private Transport transport;
 	private House house;
 
-	public static Flat next (Prompter prompt) throws IOException, PrompterInputAbortedException {
+	/**
+	 * Ask a Prompter for a Flat, with the id auto-generated
+	 * @param Prompter the I/O device
+	 */
+	public static Flat next (Prompter prompt) throws PrompterInputAbortedException {
+		return next(prompt, Storage.getStorage().nextID());
+	}
+
+	/**
+	 * Ask a Prompter for a Flat, with the id given
+	 * @param Prompter the I/O device
+	 * @param id the predefined id
+	 */
+	public static Flat next (Prompter prompt, int id) throws PrompterInputAbortedException {
 		Flat result = new Flat();
 
-		result.id = Storage.getStorage().nextID();
+		result.id = id;
 		result.creationDate = new Date();
 
 		result.name = prompt.nextLine("name (nonempty): ", s -> !s.isEmpty());
@@ -39,18 +55,31 @@ public final class Flat implements Comparable<Flat> {
 		result.view = prompt.nextEnum("view: ", View.class, false);
 		result.transport = prompt.nextEnum("transport: ", Transport.class, true);
 
-		prompt.pushPrefix("house ");
-		result.house = House.next(prompt);
-		prompt.popPrefix();
+		try {
+			prompt.pushPrefix("house ");
+			result.house = House.next(prompt);
+		} catch (PrompterInputAbortedException e) {
+			prompt.popPrefix();
+			throw e;
+		}
 
 		return result;
 	}
 
+	/**
+	 * Internal ID within the collection
+	 */
 	public Integer getID () { return this.id; }
-	public void setID (int id) { this.id = id; }
 
+	/**
+	 * State of furnishment
+	 */
 	public Furnish getFurnish () { return this.furnish; }
 	public Long getNumberOfRooms () { return this.numberOfRooms; }
+	/**
+	 * The house object (which this flat owns, now the other way around)
+	 */
+	public House getHouse () { return this.house; }
 
 	@Override
 	public String toString () {
@@ -122,6 +151,15 @@ public final class Flat implements Comparable<Flat> {
 		return result;
 	}
 
+	/**
+	 * Compares the flats by, in order of importance:
+	 * - area
+	 * - number of rooms
+	 * - furnishment
+	 * - transportation availability
+	 * If those match, neither is considered better, and 0 is returned,
+	 * even though they may not be equal
+	 */
 	@Override
 	public int compareTo (Flat other) {
 		if (this.area != other.area) {

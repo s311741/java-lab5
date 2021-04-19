@@ -1,7 +1,11 @@
 package storage;
 
-public final class CmdUpdateID extends ElemCmd {
-	public CmdUpdateID (String[] arguments, Flat elem) { super(arguments, elem); }
+/**
+ * update_id: replace the element with given ID with a new one
+ * Input of the element required, ID is given as an argument
+ */
+public final class CmdUpdateID extends Cmd {
+	public CmdUpdateID (String[] a, Prompter p) { super(a, p); }
 
 	@Override
 	public boolean run () {
@@ -15,8 +19,13 @@ public final class CmdUpdateID extends ElemCmd {
 			return false;
 		}
 
-		this.element.setID(id);
+		Flat element;
+		try {
+			element = Flat.next(this.prompter, id);
+		} catch (PrompterInputAbortedException e)  {
+			return false;
+		}
 		Storage storage = Storage.getStorage();
-		return storage.removeByID(id) && storage.add(this.element);
+		return storage.removeByID(id) && storage.add(element);
 	}
 }

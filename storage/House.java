@@ -4,13 +4,20 @@ import java.io.IOException;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+/**
+ * A house in which a Flat can be
+ */
 public class House {
 	private String name;
 	private Integer year;
 	private int numberOfFlatsOnFloor;
 	private Long numberOfLifts;
 
-	public static House next (Prompter prompt) throws IOException, PrompterInputAbortedException {
+	/**
+	 * Ask a Prompter for a House
+	 * @param prompt the I/O device
+	 */
+	public static House next (Prompter prompt) throws PrompterInputAbortedException {
 		House result = new House();
 		result.name = prompt.nextLine("name: ");
 		result.year = (int) (long) prompt.nextLong("year: ", n -> n > 0 && n <= 699);
@@ -25,6 +32,17 @@ public class House {
 		     ", year: " + this.year.toString() +
 		     ", flats per floor: " + Integer.toString(this.numberOfFlatsOnFloor) +
 		     ", lifts: " + this.numberOfLifts.toString() + ")";
+	}
+
+	@Override
+	public boolean equals (Object other) {
+		if (other.getClass() != this.getClass()) {
+			return false;
+		}
+		House cast = (House) other;
+		return this.name.equals(cast.name) && this.year.equals(cast.year)
+		    && this.numberOfFlatsOnFloor == cast.numberOfFlatsOnFloor
+		    && this.numberOfLifts.equals(cast.numberOfLifts);
 	}
 
 	public JSONObject toJson () {

@@ -6,8 +6,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+/**
+ * execute_script: run commands from a file as if from stdin
+ * Recursion is (crudely) detected and disallowed
+ */
 public final class CmdExecuteScript extends Cmd {
-	public CmdExecuteScript (String[] arguments) { super(arguments); }
+	public CmdExecuteScript (String[] a, Prompter p) { super(a, p); }
 
 	static HashSet<String> calls = new HashSet<String>();
 

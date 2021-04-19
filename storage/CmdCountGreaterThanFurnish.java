@@ -1,7 +1,11 @@
 package storage;
 
+/**
+ * count_greater_than_furnish: output all elements whose "furnish" parameter is greater than given
+ * Threshold is given as an argument (string enum value)
+ */
 public final class CmdCountGreaterThanFurnish extends Cmd {
-	public CmdCountGreaterThanFurnish (String[] arguments) { super(arguments); }
+	public CmdCountGreaterThanFurnish (String[] a, Prompter p) { super(a, p); }
 
 	@Override
 	public boolean run () {

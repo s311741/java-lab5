@@ -2,13 +2,16 @@ package storage;
 
 import java.io.IOException;
 
+/**
+ * save: dump the current state of the collection to the file
+ */
 public final class CmdSave extends Cmd {
-	public CmdSave (String[] arguments) { super(arguments); }
+	public CmdSave (String[] a, Prompter p) { super(a, p); }
 
 	@Override
 	public boolean run () {
 		try {
-			Storage.getStorage().dumpToFile();
+			Storage.getStorage().dumpToJson();
 		} catch (IOException e) {
 			System.err.println("The database file is inaccessible");
 			return false;

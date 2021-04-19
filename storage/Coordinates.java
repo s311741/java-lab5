@@ -4,14 +4,21 @@ import java.io.IOException;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+/**
+ * Two coordinates, curiously stored in very different data types
+ */
 public class Coordinates {
 	private float x;
 	private Double y;
 
-	public static Coordinates next (Prompter prompt) throws IOException, PrompterInputAbortedException {
+	/**
+	 * Ask a Prompter for a Coordinates
+	 * @param Prompter the I/O device
+	 */
+	public static Coordinates next (Prompter prompt) throws PrompterInputAbortedException {
 		Coordinates result = new Coordinates();
-		result.x = (float) (double) prompt.nextDouble("x: ", x -> x <= 132);
-		result.y = prompt.nextDouble("y: ", y -> y <= 364);
+		result.x = (float) (double) prompt.nextDouble("x (<=132): ", x -> x <= 132);
+		result.y = prompt.nextDouble("y (<=364): ", y -> y <= 364);
 		return result;
 	}
 

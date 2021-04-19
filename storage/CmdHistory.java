@@ -2,9 +2,12 @@ package storage;
 
 import java.util.Iterator;
 
+/**
+ * history: print out the last entered commands within this session, to a maximum of 13,
+ * latest first. Implemented with a circular buffer
+ */
 public final class CmdHistory extends Cmd {
-
-	public CmdHistory (String[] arguments) { super(arguments); }
+	public CmdHistory (String[] a, Prompter p) { super(a, p); }
 
 	@Override
 	public boolean run () {

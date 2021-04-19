@@ -5,9 +5,26 @@ import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * The command class. A subclass exists for each possible command, and an object is created for each invocation
+ */
 public abstract class Cmd {
-	final String[] arguments;
-	public Cmd (String[] args) { this.arguments = args; }
+	protected final String[] arguments;
+	protected final Prompter prompter;
+
+	/**
+	 * @param args The arguments of the command, the 0th one being the command name itself
+	 * @param prompter The prompter from which this command was run (the command may ask further info)
+	 */
+	public Cmd (String[] args, Prompter prompter) {
+		this.arguments = args;
+		this.prompter = prompter;
+	}
+
+	/**
+	 * This method is run on the object that is created for the invocation
+	 * @return true iff the invocation was successful
+	 */
 	public abstract boolean run ();
 
 	private static HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
@@ -31,9 +48,11 @@ public abstract class Cmd {
 		cmdsByName.put("filter_by_house", CmdFilterByHouse.class);
 	}
 
-	private static final Class[] CMD_CTOR_ARGS_NOELEM = { String[].class };
-	private static final Class[] CMD_CTOR_ARGS_ELEM = { String[].class, Flat.class };
+	private static final Class[] CMD_CTOR_ARGS = { String[].class, Prompter.class };
 
+	/**
+	 * Get the next command from Prompter input
+	 */
 	public static Cmd next (Prompter prompt) throws IOException {
 		final String line;
 		try {
@@ -45,32 +64,15 @@ public abstract class Cmd {
 		final String[] words = line.split("\\s+");
 		final String cmdName = words[0];
 		final Class<? extends Cmd> cmdClass = cmdsByName.getOrDefault(cmdName, CmdHelp.class);
-		final boolean acceptsElement = ElemCmd.class.isAssignableFrom(cmdClass);
-
 		final Constructor ctor;
-		final Class[] ctorArgs = acceptsElement
-				? CMD_CTOR_ARGS_ELEM
-				: CMD_CTOR_ARGS_NOELEM;
-
 		final Cmd cmd;
 		try {
-			ctor = cmdClass.getConstructor(ctorArgs);
+			ctor = cmdClass.getConstructor(CMD_CTOR_ARGS);
 		} catch (NoSuchMethodException e) {
 			return null;
 		}
 
-		final Object[] instanceArgs;
-		if (acceptsElement) {
-			Flat flat;
-			try {
-				flat = Flat.next(prompt);
-			} catch (PrompterInputAbortedException e) {
-				return null;
-			}
-			instanceArgs = new Object[]{ words, flat };
-		} else {
-			instanceArgs = new Object[]{ words };
-		}
+		final Object[] instanceArgs = new Object[]{ words, prompt };
 
 		try {
 			cmd = (Cmd) ctor.newInstance(instanceArgs);
