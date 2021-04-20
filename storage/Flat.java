@@ -63,6 +63,7 @@ public final class Flat implements Comparable<Flat> {
 			throw e;
 		}
 
+		prompt.popPrefix();
 		return result;
 	}
 
@@ -70,14 +71,13 @@ public final class Flat implements Comparable<Flat> {
 	 * Internal ID within the collection
 	 */
 	public Integer getID () { return this.id; }
-
 	/**
 	 * State of furnishment
 	 */
 	public Furnish getFurnish () { return this.furnish; }
 	public Long getNumberOfRooms () { return this.numberOfRooms; }
 	/**
-	 * The house object (which this flat owns, now the other way around)
+	 * The house object (which this flat owns, not the other way around)
 	 */
 	public House getHouse () { return this.house; }
 
@@ -123,7 +123,7 @@ public final class Flat implements Comparable<Flat> {
 			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
 			result.creationDate = sdf.parse(jo.getString("creationDate"));
 		} catch (ParseException e) {
-			return null;
+			System.err.println("Failed to parse date for object with id " + result.id.toString());
 		}
 
 		result.coordinates = Coordinates.fromJson(jo.getJSONObject("coordinates"));
@@ -143,6 +143,7 @@ public final class Flat implements Comparable<Flat> {
 				result.transport = null;
 			}
 		} catch (IllegalArgumentException e) {
+			System.err.println("Failed to parse a enum value in element with id " + result.id.toString());
 			return null;
 		}
 
@@ -162,10 +163,10 @@ public final class Flat implements Comparable<Flat> {
 	 */
 	@Override
 	public int compareTo (Flat other) {
-		if (this.area != other.area) {
+		if (!this.area.equals(other.area)) {
 			return (int) (this.area - other.area);
 		}
-		if (this.numberOfRooms != other.numberOfRooms) {
+		if (!this.numberOfRooms.equals(other.numberOfRooms)) {
 			return (int) (this.numberOfRooms - other.numberOfRooms);
 		}
 		if (this.furnish != other.furnish) {

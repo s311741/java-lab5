@@ -1,4 +1,4 @@
-CLASSPATH = .:./json-java.jar:./app.jar
+CLASSPATH = .:./json-java.jar
 
 JAVAC = javac
 JAVA = java
@@ -9,7 +9,10 @@ FILES_JAVA := $(shell find storage -type f -name '*.java')
 all: all_classes
 
 run: all
-	$(JAVA) -classpath $(CLASSPATH) storage/Main
+	@$(JAVA) -jar app.jar
+r:
+	@$(JAVA) -jar app.jar
 
 all_classes: $(FILES_JAVA)
-	$(JAVAC) -classpath $(CLASSPATH) storage/*.java
+	@$(JAVAC) -classpath $(CLASSPATH) $(FILES_JAVA)
+	@$(JAR) -cfm "app.jar" "MANIFEST.MF" storage/*.class

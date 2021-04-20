@@ -25,22 +25,22 @@ public final class CmdExecuteScript extends Cmd {
 			return false;
 		}
 
+		boolean success = true;
 		calls.add(scriptName);
 		try {
 			Prompter prompt = new Prompter(new BufferedReader(new FileReader(scriptName)));
 			Cmd cmd;
 			while ((cmd = Cmd.next(prompt)) != null) {
 				if (!cmd.run()) {
-					calls.remove(scriptName);
-					return false;
+					success = false;
+					break;
 				}
 			}
 		} catch (IOException e) {
-			return false;
-		} finally {
-			calls.remove(scriptName);
+			success = false;
 		}
 
-		return true;
+		calls.remove(scriptName);
+		return success;
 	}
 }

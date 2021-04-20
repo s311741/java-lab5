@@ -22,7 +22,8 @@ public final class CmdCountGreaterThanFurnish extends Cmd {
 
 		int answer = 0;
 		for (Flat flat: Storage.getStorage()) {
-			if (flat.getFurnish().ordinal() > threshold.ordinal()) {
+			Furnish furnish = flat.getFurnish();
+			if (furnish != null && furnish.ordinal() != threshold.ordinal()) {
 				answer++;
 			}
 		}

@@ -66,7 +66,10 @@ public final class Storage implements Iterable<Flat> {
 	 * @param element The element to add (with the ID filled in already)
 	 */
 	public boolean add (Flat element) {
-		if (!this.setValuesByID.put(element.getID(), element)) {
+		if (element == null) {
+			return false;
+		}
+		if (this.setValuesByID.put(element.getID(), element) != null) {
 			return false;
 		}
 		if (this.currentMinimum == null || element.compareTo(this.currentMinimum) < 0) {
@@ -169,14 +172,19 @@ public final class Storage implements Iterable<Flat> {
 			JSONArray ja = jo.getJSONArray("db");
 			int size = ja.length();
 			for (int i = 0; i < size; i++) {
-				this.add(Flat.fromJson(ja.getJSONObject(i)));
+				if (!this.add(Flat.fromJson(ja.getJSONObject(i)))) {
+					System.err.println("Failed to add the object " + Integer.toString(i) + " from " + FILENAME);
+				}
 			}
 
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
 				this.creationDate = sdf.parse(jo.getString("creationDate"));
 			} catch (ParseException e) {
-			} catch (JSONException e) { }
+				System.err.println("Failed to parse creationDate of the database in " + FILENAME);
+			} catch (JSONException e) {
+				System.err.println("Failed to find creationDate of the database in " + FILENAME);
+			}
 
 			fr.close();
 		} catch (IOException e) {

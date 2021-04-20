@@ -61,7 +61,7 @@ public abstract class Cmd {
 			return null;
 		}
 
-		final String[] words = line.split("\\s+");
+		final String[] words = line.trim().split("\\s+");
 		final String cmdName = words[0];
 		final Class<? extends Cmd> cmdClass = cmdsByName.getOrDefault(cmdName, CmdHelp.class);
 		final Constructor ctor;

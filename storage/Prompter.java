@@ -108,7 +108,8 @@ public final class Prompter {
 	 */
 	public Long nextLong (String prompt, PromptLongCallback cb) throws PrompterInputAbortedException
 	{
-		var result = new Object() { public Long l; };
+		class WrapResult { public Long l; }
+		WrapResult result = new WrapResult();
 		String line = this.nextLine(prompt, (String l) -> {
 			try {
 				return cb.valid(result.l = Long.parseLong(l));
@@ -138,7 +139,8 @@ public final class Prompter {
 	 */
 	public Double nextDouble (String prompt, PromptDoubleCallback cb) throws PrompterInputAbortedException
 	{
-		var result = new Object() { public Double d; };
+		class WrapResult { public Double d; }
+		WrapResult result = new WrapResult();
 		String line = this.nextLine(prompt, (String l) -> {
 			try {
 				return cb.valid(result.d = Double.parseDouble(l));
@@ -182,7 +184,8 @@ public final class Prompter {
 		newPrompt.setLength(newPrompt.length()-1); // remove last slash
 		newPrompt.append(") ");
 
-		var result = new Object() { public E e; };
+		class WrapResult { public E e; }
+		WrapResult result = new WrapResult();
 		String line = this.nextLine(newPrompt.toString(), (String l) -> {
 			try {
 				if (nullOnEmpty && l.isEmpty()) {
