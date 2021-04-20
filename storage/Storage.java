@@ -66,9 +66,6 @@ public final class Storage implements Iterable<Flat> {
 	 * @param element The element to add (with the ID filled in already)
 	 */
 	public boolean add (Flat element) {
-		if (element == null) {
-			return false;
-		}
 		if (this.setValuesByID.put(element.getID(), element) != null) {
 			return false;
 		}
@@ -172,8 +169,13 @@ public final class Storage implements Iterable<Flat> {
 			JSONArray ja = jo.getJSONArray("db");
 			int size = ja.length();
 			for (int i = 0; i < size; i++) {
-				if (!this.add(Flat.fromJson(ja.getJSONObject(i)))) {
-					System.err.println("Failed to add the object " + Integer.toString(i) + " from " + FILENAME);
+				Flat element = Flat.fromJson(ja.getJSONObject(i));
+				if (element == null) {
+					System.err.println("Failed to parse a valid object at position "
+					                   + Integer.toString(i) + " in " + FILENAME);
+				} else if (!this.add(element)) {
+					System.err.println("Failed to add the object with id "
+					                   + element.getID().toString() + " from " + FILENAME);
 				}
 			}
 

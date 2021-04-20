@@ -91,7 +91,8 @@ public final class Flat implements Comparable<Flat> {
 		       (this.furnish == null ? "" : "\nfurnish: " + this.furnish.toString()) +
 		       "\nview: " + this.view.toString() +
 		       (this.transport == null ? "" : "\ntransport: " + this.transport.toString()) +
-		       "\nhouse: " + this.house.toString() + "\n";
+		       "\nhouse: " + this.house.toString() +
+		       "\ncreated at: " + this.creationDate.toString() + "\n";
 	}
 
 	public JSONObject toJson () {
@@ -124,6 +125,7 @@ public final class Flat implements Comparable<Flat> {
 			result.creationDate = sdf.parse(jo.getString("creationDate"));
 		} catch (ParseException e) {
 			System.err.println("Failed to parse date for object with id " + result.id.toString());
+			result.creationDate = new Date();
 		}
 
 		result.coordinates = Coordinates.fromJson(jo.getJSONObject("coordinates"));
