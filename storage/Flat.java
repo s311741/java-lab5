@@ -98,7 +98,7 @@ public final class Flat implements Comparable<Flat> {
 	public JSONObject toJson () {
 		JSONObject jo = new JSONObject();
 		jo.put("id", this.id);
-		jo.put("creationDate", this.creationDate);
+		jo.put("creationDate", this.creationDate.getTime());
 		jo.put("name", this.name);
 		jo.put("coordinates", this.coordinates.toJson());
 		jo.put("area", this.area);
@@ -119,15 +119,7 @@ public final class Flat implements Comparable<Flat> {
 
 		result.id = jo.getInt("id");
 		result.name = jo.getString("name");
-
-		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
-			result.creationDate = sdf.parse(jo.getString("creationDate"));
-		} catch (ParseException e) {
-			System.err.println("Failed to parse date for object with id " + result.id.toString());
-			result.creationDate = new Date();
-		}
-
+		result.creationDate = new Date(jo.getLong("creationDate"));
 		result.coordinates = Coordinates.fromJson(jo.getJSONObject("coordinates"));
 		result.area = jo.getLong("area");
 		result.numberOfRooms = jo.getLong("numberOfRooms");

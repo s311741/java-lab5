@@ -140,7 +140,7 @@ public final class Storage implements Iterable<Flat> {
 		}
 
 		db.put("idGen", this.idGen);
-		db.put("creationDate", this.creationDate);
+		db.put("creationDate", this.creationDate.getTime());
 		db.put("db", ja);
 
 		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(FILENAME), "UTF-8");
@@ -180,12 +180,10 @@ public final class Storage implements Iterable<Flat> {
 			}
 
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
-				this.creationDate = sdf.parse(jo.getString("creationDate"));
-			} catch (ParseException e) {
-				System.err.println("Failed to parse creationDate of the database in " + FILENAME);
+				this.creationDate = new Date(jo.getLong("creationDate"));
 			} catch (JSONException e) {
-				System.err.println("Failed to find creationDate of the database in " + FILENAME);
+				System.err.println("Couldn\'t find creationDate in " + FILENAME);
+				this.creationDate = new Date();
 			}
 
 			fr.close();
