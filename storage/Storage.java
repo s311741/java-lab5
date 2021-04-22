@@ -174,7 +174,7 @@ public final class Storage implements Iterable<Flat> {
 		db.put("db", ja);
 
 		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(this.filename), "UTF-8");
-		w.write(db.toString());
+		w.write(db.toString(4));
 		w.close();
 
 		this.fileExistsYet = true;
@@ -204,13 +204,15 @@ public final class Storage implements Iterable<Flat> {
 			JSONArray ja = jo.getJSONArray("db");
 			int size = ja.length();
 			for (int i = 0; i < size; i++) {
-				Flat element = Flat.fromJson(ja.getJSONObject(i));
-				if (element == null) {
-					System.err.println("Failed to parse a valid object at position "
-					                   + Integer.toString(i) + " in " + this.filename);
-				} else if (!this.add(element)) {
-					System.err.println("Failed to add the object with id "
-					                   + element.getID().toString() + " from " + this.filename);
+				boolean success;
+				try {
+					success = this.add(Flat.fromJson(ja.getJSONObject(i)));
+				} catch (JSONException e) {
+					success = false;
+				}
+				if (!success) {
+					System.err.println("Failed to add the object at position "
+					                   + Integer.toString(i) + " from " + this.filename);
 				}
 			}
 
