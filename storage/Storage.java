@@ -11,6 +11,9 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.FileSystems;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,7 +23,9 @@ import org.json.JSONException;
  */
 public final class Storage implements Iterable<Flat> {
 	private static Storage instance = null;
-	public static final String FILENAME = "db.json";
+
+	private String filename = "db.json";
+	private boolean fileExistsYet = true;
 
 	private static Date creationDate = new Date();
 
@@ -40,7 +45,7 @@ public final class Storage implements Iterable<Flat> {
 		                ? "Minimum doesn\'t exist"
 		                : "Minimum has id " + this.currentMinimum.getID().toString()) + "\n" +
 		       "next available ID = " + Integer.toString(this.idGen) + "\n" +
-		       "filename = " + FILENAME + "\n" +
+		       "filename = " + this.filename + "\n" +
 		       "created at: " + this.creationDate.toString() + "\n";
 	}
 
@@ -49,6 +54,31 @@ public final class Storage implements Iterable<Flat> {
 	 */
 	public int nextID () {
 		return this.idGen++;
+	}
+
+	public boolean setFile (String filename) {
+		Path path = FileSystems.getDefault().getPath(filename);
+
+		if (!Files.exists(path)) {
+			System.out.println("No such file: " + filename + ", will create on save");
+			this.fileExistsYet = false;
+			return true;
+		}
+
+		this.fileExistsYet = true;
+
+		if (!Files.isReadable(path)) {
+			System.out.println("The file " + filename + " is not readable");
+			return false;
+		}
+
+		if (!Files.isWritable(path)) {
+			System.out.println("The file " + filename + " is not writable");
+			return false;
+		}
+
+		this.filename = filename;
+		return true;
 	}
 
 	/**
@@ -143,17 +173,22 @@ public final class Storage implements Iterable<Flat> {
 		db.put("creationDate", this.creationDate.getTime());
 		db.put("db", ja);
 
-		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(FILENAME), "UTF-8");
+		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(this.filename), "UTF-8");
 		w.write(db.toString());
 		w.close();
+
+		this.fileExistsYet = true;
 	}
 
 	/**
 	 * Attempt to populate the storage from its file, or, if anything is wrong, complain and do nothing
 	 */
 	public void tryPopulateFromFile () {
+		if (!this.fileExistsYet) {
+			return;
+		}
 		try {
-			FileReader fr = new FileReader(FILENAME);
+			FileReader fr = new FileReader(this.filename);
 			StringBuilder sb = new StringBuilder();
 			int c;
 
@@ -172,25 +207,25 @@ public final class Storage implements Iterable<Flat> {
 				Flat element = Flat.fromJson(ja.getJSONObject(i));
 				if (element == null) {
 					System.err.println("Failed to parse a valid object at position "
-					                   + Integer.toString(i) + " in " + FILENAME);
+					                   + Integer.toString(i) + " in " + this.filename);
 				} else if (!this.add(element)) {
 					System.err.println("Failed to add the object with id "
-					                   + element.getID().toString() + " from " + FILENAME);
+					                   + element.getID().toString() + " from " + this.filename);
 				}
 			}
 
 			try {
 				this.creationDate = new Date(jo.getLong("creationDate"));
 			} catch (JSONException e) {
-				System.err.println("Couldn\'t find creationDate in " + FILENAME);
+				System.err.println("Couldn\'t find creationDate in " + this.filename);
 				this.creationDate = new Date();
 			}
 
 			fr.close();
 		} catch (IOException e) {
-			System.err.println("Couldn\'t populate storage: the file " + FILENAME + " cannot be read");
+			System.err.println("Couldn\'t populate storage: the file " + this.filename + " cannot be read");
 		} catch (JSONException e) {
-			System.err.println("Couldn\'t populate storage: The file " + FILENAME + " contains invalid JSON");
+			System.err.println("Couldn\'t populate storage: The file " + this.filename + " contains invalid JSON");
 		}
 	}
 
