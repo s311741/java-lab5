@@ -1,0 +1,17 @@
+add
+	flat1
+	100
+	100
+	3
+	2
+	designer
+	terrible
+	normal
+	house1
+	200
+	16
+	4
+
+save
+
+execute_script scripts/indirectly_recursive_1

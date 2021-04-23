@@ -8,10 +8,9 @@ FILES_JAVA := $(shell find storage -type f -name '*.java')
 
 all: all_classes
 
-run: all
-	@$(JAVA) -jar app.jar
+run: all r
 r:
-	@$(JAVA) -jar app.jar
+	@$(JAVA) -jar app.jar db.json
 
 all_classes: $(FILES_JAVA)
 	@$(JAVAC) -classpath $(CLASSPATH) $(FILES_JAVA)

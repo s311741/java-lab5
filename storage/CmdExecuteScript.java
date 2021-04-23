@@ -13,7 +13,7 @@ import java.io.IOException;
 public final class CmdExecuteScript extends Cmd {
 	public CmdExecuteScript (String[] a, Prompter p) { super(a, p); }
 
-	static HashSet<String> calls = new HashSet<String>();
+	private static HashSet<String> calls = new HashSet<String>();
 
 	@Override
 	public boolean run () {
@@ -21,26 +21,37 @@ public final class CmdExecuteScript extends Cmd {
 			return false;
 		}
 		final String scriptName = this.arguments[1];
-		if (calls.contains(scriptName)) {
-			return false;
-		}
 
 		boolean success = true;
+		CmdSave saveAfter = null;
+
+		if (calls.contains(scriptName)) {
+			System.err.println("Recursion deteceted in script " + scriptName
+			                   + "\nexiting without saving any changes this script might have made");
+			System.exit(1);
+		}
 		calls.add(scriptName);
+
 		try {
 			Prompter prompt = new Prompter(new BufferedReader(new FileReader(scriptName)));
-			Cmd cmd;
-			while ((cmd = Cmd.next(prompt)) != null) {
-				if (!cmd.run()) {
+			for (Cmd cmd; (cmd = Cmd.next(prompt)) != null; ) {
+				if (cmd instanceof CmdSave) {
+					saveAfter = (CmdSave) cmd;
+				} else if (!cmd.run()) {
 					success = false;
 					break;
 				}
 			}
 		} catch (IOException e) {
+			System.err.println("Couldn\'t access script " + scriptName);
 			success = false;
 		}
 
 		calls.remove(scriptName);
+		if (success && saveAfter != null && calls.isEmpty()) {
+			saveAfter.run();
+		}
+
 		return success;
 	}
 }

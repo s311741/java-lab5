@@ -27,6 +27,11 @@ public abstract class Cmd {
 	 */
 	public abstract boolean run ();
 
+	@Override
+	public String toString () {
+		return String.join(" ", this.arguments);
+	}
+
 	private static HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
 
 	static {
@@ -61,9 +66,14 @@ public abstract class Cmd {
 			return null;
 		}
 
-		final String[] words = line.trim().split("\\s+");
+		final String[] words = line.split("\\s+");
+		CmdHistory.pushEntry(words[0]);
+		return getCommandFromWords(words, prompt);
+	}
+
+	public static Cmd getCommandFromWords (String[] words, Prompter prompt) {
 		final String cmdName = words[0];
-		final Class<? extends Cmd> cmdClass = cmdsByName.getOrDefault(cmdName, CmdHelp.class);
+		final Class<? extends Cmd> cmdClass = cmdsByName.getOrDefault(cmdName,CmdHelp.class);
 		final Constructor ctor;
 		final Cmd cmd;
 		try {
@@ -81,7 +91,6 @@ public abstract class Cmd {
 		catch (IllegalAccessException e) { return null; }
 		catch (InvocationTargetException e) { return null; }
 
-		CmdHistory.pushEntry(cmdName);
 		return cmd;
 	}
 }

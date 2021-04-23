@@ -9,33 +9,49 @@ import java.io.IOException;
 
 public class Main {
 	public static void main (String[] args) {
-		Prompter prompter = new Prompter(new BufferedReader(new InputStreamReader(System.in)),
-		                                 new OutputStreamWriter(System.out));
+		Prompter prompt = new Prompter(new BufferedReader(new InputStreamReader(System.in)),
+		                               new OutputStreamWriter(System.out));
 
 		String storageFilename;
-		if (args.length < 1) {
+
+		int sep = args.length;
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("+")) {
+				sep = i;
+				break;
+			}
+		}
+
+		if (sep == 0) {
+			// No filename given before command; ask for one
 			try {
 				do {
-					storageFilename = prompter.nextLine("Database file: ");
+					storageFilename = prompt.nextLine("Database file: ");
 				} while (!Storage.getStorage().setFile(storageFilename));
 			} catch (PrompterInputAbortedException e) {
 				return;
 			}
-		} else if (args.length == 1) {
+		} else {
 			if (!Storage.getStorage().setFile(args[0])) {
 				System.exit(1);
 			}
-		} else {
-			System.err.println("Too many arguments");
-			System.exit(1);
 		}
 
 		Storage.getStorage().tryPopulateFromFile();
 
-		Cmd cmd;
+		if (sep < args.length-1) {
+			// There is a command in the argument list; run it and quit
+			int numCmdWords = args.length-sep-1;
+			String[] cmdWords = new String[numCmdWords];
+			for (int i = 0; i < numCmdWords; i++) {
+				cmdWords[i] = args[sep+1+i];
+			}
+			System.exit(Cmd.getCommandFromWords(cmdWords, prompt).run() ? 0 : 1);
+		}
 
+		// Interactive mode
 		try {
-			while ((cmd = Cmd.next(prompter)) != null) {
+			for (Cmd cmd; (cmd = Cmd.next(prompt)) != null; ) {
 				if (!cmd.run()) {
 					System.err.println("The command failed");
 				}
@@ -46,4 +62,3 @@ public class Main {
 		}
 	}
 }
-

@@ -66,30 +66,25 @@ public final class Prompter {
 	public String nextLine (String prompt, PromptLineCallback cb) throws PrompterInputAbortedException
 	{
 		String line;
-		try {
-			if (this.writer == null) {
-				// non-interactive mode
-				line = this.reader.readLine();
-				return cb.valid(line) ? line : null;
-			} else {
-				// interactive mode
-				do {
+		do {
+			try {
+				if (this.writer != null) {
 					for (String prefix: this.prefixes) {
 						this.writer.write(prefix);
 					}
 					this.writer.write(prompt);
 					this.writer.flush();
-					line = this.reader.readLine();
-					if (line == null) {
-						throw new PrompterInputAbortedException();
-					}
-					line.trim();
-				} while (!cb.valid(line));
-				return line;
+				}
+				line = this.reader.readLine();
+			} catch (IOException e) {
+				return null;
 			}
-		} catch (IOException e) {
-			return null;
-		}
+			if (line == null) {
+				throw new PrompterInputAbortedException();
+			}
+			line = line.trim();
+		} while (!cb.valid(line));
+		return line;
 	}
 
 	/**
