@@ -19,7 +19,7 @@ public final class CmdAddIfMin extends Cmd {
 				storage.add(element);
 			}
 		} catch (PrompterInputAbortedException e) {
-			this.printError("input aborted while entering element");
+			this.printMessage("input aborted while entering element");
 			return false;
 		}
 		return true;

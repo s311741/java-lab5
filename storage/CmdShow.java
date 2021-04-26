@@ -8,7 +8,13 @@ public final class CmdShow extends Cmd {
 
 	@Override
 	public boolean run () {
-		for (Flat flat: Storage.getStorage()) {
+		Storage storage = Storage.getStorage();
+
+		if (storage.isEmpty()) {
+			this.printMessage("no items to show");
+		}
+
+		for (Flat flat: storage) {
 			System.out.println(flat.toString());
 		}
 		return true;

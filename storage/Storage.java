@@ -27,6 +27,9 @@ public final class Storage implements Iterable<Flat> {
 	private String filename = "db.json";
 	private boolean fileExistsYet = true;
 
+	private boolean writesLocked = false;
+	private boolean saveRequestedSinceLock = false;
+
 	private static Date creationDate = new Date();
 
 	private LinkedHashSet<Flat> set = new LinkedHashSet<Flat>();
@@ -56,6 +59,9 @@ public final class Storage implements Iterable<Flat> {
 		return this.idGen++;
 	}
 
+	/**
+	 * Set the filename to back the database
+	 */
 	public boolean setFile (String filename) {
 		Path path = FileSystems.getDefault().getPath(filename);
 
@@ -162,7 +168,34 @@ public final class Storage implements Iterable<Flat> {
 		return this.set.iterator();
 	}
 
+	public boolean isEmpty () {
+		return this.set.isEmpty();
+	}
+
+	public void lockWrites () {
+		if (!this.writesLocked) {
+			this.writesLocked = true;
+			this.saveRequestedSinceLock = false;
+		}
+	}
+
+	public void unlockWrites () throws IOException {
+		this.writesLocked = false;
+		if (this.saveRequestedSinceLock) {
+			this.dumpToJson();
+		}
+		this.saveRequestedSinceLock = false;
+	}
+
+	/**
+	 * Dump the database to the filename set by setFile()
+	 */
 	public void dumpToJson () throws IOException {
+		if (this.writesLocked) {
+			this.saveRequestedSinceLock = true;
+			return;
+		}
+
 		JSONObject db = new JSONObject();
 		JSONArray ja = new JSONArray();
 		for (Flat flat: this) {

@@ -13,7 +13,7 @@ public final class CmdSave extends Cmd {
 		try {
 			Storage.getStorage().dumpToJson();
 		} catch (IOException e) {
-			this.printError("the database file is inaccessible");
+			this.printMessage("the database file is inaccessible");
 			return false;
 		}
 		return true;

@@ -18,42 +18,55 @@ public final class CmdExecuteScript extends Cmd {
 	@Override
 	public boolean run () {
 		if (this.arguments.length < 2) {
-			this.printError("no script name given");
+			this.printMessage("no script name given");
 			return false;
 		}
 		final String scriptName = this.arguments[1];
+		final boolean topLevel = calls.isEmpty();
 
-		boolean success = true;
-		CmdSave saveAfter = null;
-
-		if (calls.contains(scriptName)) {
-			this.printError("recursion detected in script " + scriptName
+		if (!topLevel && calls.contains(scriptName)) {
+			this.printMessage("recursion detected in script " + scriptName
 			              + ".\nExiting without saving any changes this script might have made");
 			System.exit(1);
 		}
+
+		if (topLevel) {
+			Storage.getStorage().lockWrites();
+		}
 		calls.add(scriptName);
+
+		Cmd failedCmd = null;
+		boolean success = true;
 
 		try {
 			Prompter prompt = new Prompter(new BufferedReader(new FileReader(scriptName)));
 			for (Cmd cmd; (cmd = Cmd.next(prompt)) != null; ) {
-				if (cmd instanceof CmdSave) {
-					saveAfter = (CmdSave) cmd;
-				} else if (!cmd.run()) {
-					this.printError("recursion detected");
+				if (!cmd.run()) {
+					failedCmd = cmd;
 					success = false;
 					break;
 				}
 			}
 		} catch (IOException e) {
-			this.printError("couldn\'t access script " + scriptName);
+			this.printMessage("couldn\'t access script " + scriptName);
 			success = false;
 		}
 
-		calls.remove(scriptName);
-		if (success && saveAfter != null && calls.isEmpty()) {
-			saveAfter.run();
+		if (failedCmd != null && topLevel) {
+			this.printMessage("script " + scriptName + " aborted: command \""
+			                + failedCmd.toString() + "\" failed");
 		}
 
+		calls.remove(scriptName);
+		if (success && topLevel) {
+			try {
+				Storage.getStorage().unlockWrites();
+			} catch (IOException e) {
+				this.printMessage("Couldn'\t unlock writes to the database at the end of script "
+				                + scriptName);
+				success = false;
+			}
+		}
 		return success;
 	}
 }

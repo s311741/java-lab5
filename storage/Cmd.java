@@ -30,7 +30,7 @@ public abstract class Cmd {
 	/**
 	 * Helper to print error messages while giving the command name
 	 */
-	public void printError (String message) {
+	public void printMessage (String message) {
 		System.err.println(this.arguments[0] + ": " + message);
 	}
 

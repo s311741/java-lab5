@@ -10,7 +10,7 @@ public final class CmdCountGreaterThanFurnish extends Cmd {
 	@Override
 	public boolean run () {
 		if (arguments.length < 2) {
-			this.printError("no furnish level specified");
+			this.printMessage("no furnish level specified");
 			return false;
 		}
 

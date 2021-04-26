@@ -1,0 +1,3 @@
+show exxx
+execute_script scripts/script2
+show
