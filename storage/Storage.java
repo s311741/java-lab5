@@ -63,23 +63,33 @@ public final class Storage implements Iterable<Flat> {
 	 * Set the filename to back the database
 	 */
 	public boolean setFile (String filename) {
-		Path path = FileSystems.getDefault().getPath(filename);
+		Path path = FileSystems.getDefault().getPath(filename).normalize();
 
 		if (!Files.exists(path)) {
-			System.out.println("No such file: " + filename + ", will create on save");
 			this.fileExistsYet = false;
+
+			System.err.print("No such file: " + filename);
+
+			try {
+				Files.createFile(path);
+			} catch (IOException e) {
+				System.err.println(" and failed to create it");
+				return false;
+			}
+
+			System.err.println(" - created, will populate on save");
 			return true;
 		}
 
 		this.fileExistsYet = true;
 
 		if (!Files.isReadable(path)) {
-			System.out.println("The file " + filename + " is not readable");
+			System.err.println("The file " + filename + " is not readable");
 			return false;
 		}
 
 		if (!Files.isWritable(path)) {
-			System.out.println("The file " + filename + " is not writable");
+			System.err.println("The file " + filename + " is not writable");
 			return false;
 		}
 
