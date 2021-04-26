@@ -27,6 +27,13 @@ public abstract class Cmd {
 	 */
 	public abstract boolean run ();
 
+	/**
+	 * Helper to print error messages while giving the command name
+	 */
+	public void printError (String message) {
+		System.err.println(this.arguments[0] + ": " + message);
+	}
+
 	@Override
 	public String toString () {
 		return String.join(" ", this.arguments);

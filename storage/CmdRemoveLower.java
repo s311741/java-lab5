@@ -13,12 +13,14 @@ public final class CmdRemoveLower extends Cmd {
 		try {
 			element = Flat.next(this.prompter);
 		} catch (PrompterInputAbortedException e) {
+			this.printError("input aborted while entering house");
 			return false;
 		}
 
 		Storage storage = Storage.getStorage();
 		for (Flat flat: storage) {
 			if (flat.compareTo(element) < 0 && !storage.removeByReference(flat)) {
+				this.printError("failed to remove element with id " + flat.getID());
 				return false;
 			}
 		}

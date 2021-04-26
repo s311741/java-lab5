@@ -18,6 +18,7 @@ public final class CmdExecuteScript extends Cmd {
 	@Override
 	public boolean run () {
 		if (this.arguments.length < 2) {
+			this.printError("no script name given");
 			return false;
 		}
 		final String scriptName = this.arguments[1];
@@ -26,8 +27,8 @@ public final class CmdExecuteScript extends Cmd {
 		CmdSave saveAfter = null;
 
 		if (calls.contains(scriptName)) {
-			System.err.println("Recursion deteceted in script " + scriptName
-			                   + "\nexiting without saving any changes this script might have made");
+			this.printError("recursion detected in script " + scriptName
+			              + ".\nExiting without saving any changes this script might have made");
 			System.exit(1);
 		}
 		calls.add(scriptName);
@@ -38,12 +39,13 @@ public final class CmdExecuteScript extends Cmd {
 				if (cmd instanceof CmdSave) {
 					saveAfter = (CmdSave) cmd;
 				} else if (!cmd.run()) {
+					this.printError("recursion detected");
 					success = false;
 					break;
 				}
 			}
 		} catch (IOException e) {
-			System.err.println("Couldn\'t access script " + scriptName);
+			this.printError("couldn\'t access script " + scriptName);
 			success = false;
 		}
 

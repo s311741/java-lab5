@@ -14,6 +14,7 @@ public final class CmdFilterByHouse extends Cmd {
 			this.prompter.pushPrefix("reference house ");
 			reference = House.next(this.prompter);
 		} catch (PrompterInputAbortedException e) {
+			this.printError("input aborted while entering element");
 			return false;
 		} finally {
 			this.prompter.popPrefix();
