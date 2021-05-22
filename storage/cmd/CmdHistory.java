@@ -2,6 +2,7 @@ package storage.cmd;
 
 import java.util.Iterator;
 import storage.*;
+import storage.client.*;
 
 /**
  * history: print out the last entered commands within this session, to a maximum of 13,

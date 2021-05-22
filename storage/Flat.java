@@ -4,16 +4,18 @@ import java.util.Date;
 import java.io.BufferedReader;
 import java.io.Writer;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import org.json.JSONObject;
 import org.json.JSONException;
+import storage.client.*;
 
 /**
  * The subject matter of the collection, a representation of some real estate.
  */
-public final class Flat implements Comparable<Flat> {
-	private Integer id;
+public final class Flat implements Comparable<Flat>, Serializable {
+	private Integer id = null;
 	private String name;
 	private Coordinates coordinates;
 	private Date creationDate;
@@ -24,23 +26,27 @@ public final class Flat implements Comparable<Flat> {
 	private Transport transport;
 	private House house;
 
-	/**
-	 * Ask a Prompter for a Flat, with the id auto-generated
-	 * @param Prompter the I/O device
-	 */
-	public static Flat next (Prompter prompt) throws PrompterInputAbortedException {
-		return next(prompt, Storage.getStorage().nextID());
+	public Flat setID (Integer id) {
+		if (this.id != null) {
+			throw new Error("Tried to set the ID of an element which already has one");
+		}
+		return this.forceUpdateID(id);
+	}
+	public Flat forceUpdateID (Integer id) {
+		if (id == null) {
+			throw new Error("Tried to set the ID of an element to null");
+		}
+		this.id = id;
+		return this;
 	}
 
 	/**
-	 * Ask a Prompter for a Flat, with the id given
+	 * Ask a Prompter for a Flat
 	 * @param Prompter the I/O device
-	 * @param id the predefined id
 	 */
-	public static Flat next (Prompter prompt, int id) throws PrompterInputAbortedException {
+	public static Flat next (Prompter prompt) throws PrompterInputAbortedException {
 		Flat result = new Flat();
 
-		result.id = id;
 		result.creationDate = new Date();
 
 		result.name = prompt.nextLine("name (nonempty): ", s -> !s.isEmpty());

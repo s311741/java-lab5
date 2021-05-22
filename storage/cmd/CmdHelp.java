@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * help: print out a help message
@@ -30,7 +31,8 @@ public final class CmdHelp extends Cmd {
 		"filter_by_house\n" +
 		"               print those elements whose house equals to given\n" +
 		"history        print the last commands entered, up to 13\n" +
-		"execute_script execute commands from a file as if from stdin\n";
+		"execute_script execute commands from a file as if from stdin\n" +
+		"shutdown       shutdown remote server";
 
 	@Override
 	public boolean run () {

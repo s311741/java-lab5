@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * remove_by_id: remove an element with given ID, if any
@@ -22,10 +23,14 @@ public final class CmdRemoveByID extends Cmd {
 			this.printMessage("invalid ID given");
 			return false;
 		}
-		boolean success = Storage.getStorage().removeByID(id);
-		if (!success) {
-			this.printMessage("failed to remove element from storage");
-		}
+		boolean success = true;
+
+		// boolean success = Storage.getStorage().removeByID(id);
+		// if (!success) {
+		// 	this.printMessage("failed to remove element from storage");
+		// }
+		// TODO: request removal
+
 		return success;
 	}
 }

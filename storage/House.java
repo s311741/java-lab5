@@ -4,6 +4,8 @@ import java.io.IOException;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import storage.client.*;
+
 /**
  * A house in which a Flat can be
  */

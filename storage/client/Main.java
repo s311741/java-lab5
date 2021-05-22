@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 
+import java.net.*;
+
 import storage.*;
 import storage.cmd.Cmd;
 
@@ -25,22 +27,46 @@ public class Main {
 			}
 		}
 
+		SocketAddress socketAddress = null;
 		if (sep == 0) {
-			// No filename given before command; ask for one
+			// No IP given before command: ask for one
 			try {
+				boolean success = false;
 				do {
-					storageFilename = prompt.nextLine("Database file: ");
-				} while (!Storage.getStorage().setFile(storageFilename));
+					String host = prompt.nextLine("Host address: ");
+					int port = (int) (long) prompt.nextLong("Port: ", l -> (l > 0 && l < 65536));
+					try {
+						socketAddress = new InetSocketAddress(InetAddress.getByName(host), port);
+						success = true;
+					} catch (UnknownHostException e) {
+						System.err.println("Failed to resolve the host");
+					}
+				} while (!success);
 			} catch (PrompterInputAbortedException e) {
 				return;
 			}
 		} else {
-			if (!Storage.getStorage().setFile(args[0])) {
+			// Set IP to whatever was in the parameter
+			String hostPort = args[0];
+			int colon = hostPort.indexOf(':');
+			if (colon == -1) {
+				System.err.println("Must specify host address as host:port");
+			}
+			String host = hostPort.substring(0, colon);
+			try {
+				int port = Integer.parseInt(hostPort.substring(colon + 1));
+
+				socketAddress = new InetSocketAddress(InetAddress.getByName(host), port);
+			} catch (UnknownHostException e) {
+				System.out.println("Failed to resolve the host");
+				System.exit(1);
+			} catch (NumberFormatException e) {
+				System.out.println("Invalid port number");
 				System.exit(1);
 			}
 		}
 
-		Storage.getStorage().tryPopulateFromFile();
+		StorageClient.initialize(socketAddress);
 
 		if (sep < args.length-1) {
 			// There is a command in the argument list; run it and quit

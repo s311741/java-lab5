@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * The command class. A subclass exists for each possible command, and an object is created for each invocation
@@ -41,8 +42,7 @@ public abstract class Cmd {
 		return String.join(" ", this.arguments);
 	}
 
-	private static HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
-
+	private static final HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
 	static {
 		cmdsByName.put("help", CmdHelp.class);
 		cmdsByName.put("add", CmdAdd.class);
@@ -60,6 +60,7 @@ public abstract class Cmd {
 		cmdsByName.put("count_greater_than_furnish", CmdCountGreaterThanFurnish.class);
 		cmdsByName.put("sum_of_number_of_rooms", CmdSumNumberOfRooms.class);
 		cmdsByName.put("filter_by_house", CmdFilterByHouse.class);
+		cmdsByName.put("shutdown", CmdShutdown.class);
 	}
 
 	private static final Class[] CMD_CTOR_ARGS = { String[].class, Prompter.class };

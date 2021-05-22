@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * filter_by_house: output elements whose "house" parameter is equal to the given house
@@ -22,11 +23,12 @@ public final class CmdFilterByHouse extends Cmd {
 			this.prompter.popPrefix();
 		}
 
-		for (Flat flat: Storage.getStorage()) {
-			if (reference.equals(flat.getHouse())) {
-				System.out.println(flat.toString());
-			}
-		}
+		// for (Flat flat: Storage.getStorage()) {
+		// 	if (reference.equals(flat.getHouse())) {
+		// 		System.out.println(flat.toString());
+		// 	}
+		// }
+		// TODO: move this logic to server
 
 		return true;
 	}

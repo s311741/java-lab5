@@ -1,4 +1,4 @@
-package storage;
+package storage.client;
 
 import java.io.BufferedReader;
 import java.io.Writer;
@@ -44,10 +44,10 @@ public final class Prompter {
 	 */
 	public void popPrefix () { this.prefixes.pop(); }
 
-	@FunctionalInterface interface PromptLineCallback { boolean valid (String line); }
-	@FunctionalInterface interface PromptLongCallback { boolean valid (Long n); }
-	@FunctionalInterface interface PromptDoubleCallback { boolean valid (Double d); }
-	@FunctionalInterface interface PromptEnumCallback<E extends Enum> { boolean valid (E en); }
+	@FunctionalInterface public interface PromptLineCallback { boolean valid (String line); }
+	@FunctionalInterface public interface PromptLongCallback { boolean valid (Long n); }
+	@FunctionalInterface public interface PromptDoubleCallback { boolean valid (Double d); }
+	@FunctionalInterface public interface PromptEnumCallback<E extends Enum> { boolean valid (E en); }
 
 	/**
 	 * Get a non-empty line

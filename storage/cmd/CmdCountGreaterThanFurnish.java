@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * count_greater_than_furnish: output all elements whose "furnish" parameter is greater than given
@@ -24,12 +25,13 @@ public final class CmdCountGreaterThanFurnish extends Cmd {
 		}
 
 		int answer = 0;
-		for (Flat flat: Storage.getStorage()) {
-			Furnish furnish = flat.getFurnish();
-			if (furnish != null && furnish.ordinal() != threshold.ordinal()) {
-				answer++;
-			}
-		}
+		// for (Flat flat: Storage.getStorage()) {
+		// 	Furnish furnish = flat.getFurnish();
+		// 	if (furnish != null && furnish.ordinal() != threshold.ordinal()) {
+		// 		answer++;
+		// 	}
+		// }
+		// TODO: move checking to server, receive only the anwer
 
 		System.out.println(answer);
 		return true;

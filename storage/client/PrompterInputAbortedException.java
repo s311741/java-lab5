@@ -1,4 +1,4 @@
-package storage;
+package storage.client;
 
 /**
  * The exception that is thrown when a Prompter fails to read information

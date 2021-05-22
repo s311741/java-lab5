@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * add: add an element
@@ -11,12 +12,17 @@ public final class CmdAdd extends Cmd {
 
 	@Override
 	public boolean run () {
-		try {
-			Flat element = Flat.next(this.prompter);
-			return Storage.getStorage().add(element);
-		} catch (PrompterInputAbortedException e) {
-			this.printMessage("input aborted while entering element");
-			return false;
-		}
+		// try {
+		// 	Flat element = Flat.next(this.prompter);
+		// 	return StorageClient.getClient().add(element);
+
+		// 	return true;
+		// } catch (PrompterInputAbortedException e) {
+		// 	this.printMessage("input aborted while entering element");
+		// 	return false;
+		// }
+		// TODO: just request addition
+
+		return true;
 	}
 }

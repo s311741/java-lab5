@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * info: print info about the storage
@@ -10,7 +11,8 @@ public final class CmdInfo extends Cmd {
 
 	@Override
 	public boolean run () {
-		System.out.println(Storage.getStorage().info());
+		// System.out.println(Storage.getStorage().info());
+		// TODO: make a request for info
 		return true;
 	}
 }

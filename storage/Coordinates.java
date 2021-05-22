@@ -3,6 +3,7 @@ package storage;
 import java.io.IOException;
 import org.json.JSONObject;
 import org.json.JSONException;
+import storage.client.*;
 
 /**
  * Two coordinates, curiously stored in very different data types

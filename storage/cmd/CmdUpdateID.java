@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * update_id: replace the element with given ID with a new one
@@ -25,22 +26,27 @@ public final class CmdUpdateID extends Cmd {
 
 		Flat element;
 		try {
-			element = Flat.next(this.prompter, id);
+			element = Flat.next(this.prompter).setID(id);
 		} catch (PrompterInputAbortedException e)  {
 			this.printMessage("input aborted while entering element");
 			return false;
 		}
-		Storage storage = Storage.getStorage();
-		boolean success = storage.removeByID(id);
-		if (!success) {
-			this.printMessage("failed to remove old element with id" + id);
-			return false;
-		}
-		success = storage.add(element);
-		if (!success) {
-			this.printMessage("failed to add new element with id " + id);
-			return false;
-		}
+
+		boolean success = true;
+
+		// Storage storage = Storage.getStorage();
+		// boolean success = storage.removeByID(id);
+		// if (!success) {
+		// 	this.printMessage("failed to remove old element with id" + id);
+		// 	return false;
+		// }
+		// success = storage.add(element);
+		// if (!success) {
+		// 	this.printMessage("failed to add new element with id " + id);
+		// 	return false;
+		// }
+		// TODO: move this logic to server
+
 		return success;
 	}
 }

@@ -1,6 +1,7 @@
 package storage.cmd;
 
 import storage.*;
+import storage.client.*;
 
 /**
  * remove_lower: remove all elements which evaluate lower than given
@@ -19,13 +20,14 @@ public final class CmdRemoveLower extends Cmd {
 			return false;
 		}
 
-		Storage storage = Storage.getStorage();
-		for (Flat flat: storage) {
-			if (flat.compareTo(element) < 0 && !storage.removeByReference(flat)) {
-				this.printMessage("failed to remove element with id " + flat.getID());
-				return false;
-			}
-		}
+		// Storage storage = Storage.getStorage();
+		// for (Flat flat: storage) {
+		// 	if (flat.compareTo(element) < 0 && !storage.removeByReference(flat)) {
+		// 		this.printMessage("failed to remove element with id " + flat.getID());
+		// 		return false;
+		// 	}
+		// }
+		// TODO: move this logic to server
 		return true;
 	}
 }

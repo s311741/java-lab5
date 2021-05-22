@@ -1,4 +1,4 @@
-package storage;
+package storage.server;
 
 import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
@@ -17,12 +17,20 @@ import java.nio.file.FileSystems;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import storage.*;
 
-/*
- * The singleton Storage class to represent the in-memory state of the database
- */
-public final class Storage implements Iterable<Flat> {
-	private static Storage instance = null;
+public class StorageServer {
+	private static StorageServer instance = null;
+	private StorageServer () { }
+	/**
+	 * Get the instance of the singleton
+	 */
+	public static StorageServer getStorage () {
+		if (instance == null) {
+			instance = new StorageServer();
+		}
+		return instance;
+	}
 
 	private String filename = "db.json";
 	private boolean fileExistsYet = true;
@@ -98,16 +106,6 @@ public final class Storage implements Iterable<Flat> {
 	}
 
 	/**
-	 * Get the instance of the singleton
-	 */
-	public static Storage getStorage () {
-		if (instance == null) {
-			instance = new Storage();
-		}
-		return instance;
-	}
-
-	/**
 	 * Add an element, if there isn't an element with such ID already
 	 * @param element The element to add (with the ID filled in already)
 	 */
@@ -173,11 +171,6 @@ public final class Storage implements Iterable<Flat> {
 		return this.currentMinimum;
 	}
 
-	@Override
-	public Iterator<Flat> iterator () {
-		return this.set.iterator();
-	}
-
 	public boolean isEmpty () {
 		return this.set.isEmpty();
 	}
@@ -208,7 +201,7 @@ public final class Storage implements Iterable<Flat> {
 
 		JSONObject db = new JSONObject();
 		JSONArray ja = new JSONArray();
-		for (Flat flat: this) {
+		for (Flat flat: this.set) {
 			ja.put(flat.toJson());
 		}
 
@@ -276,7 +269,7 @@ public final class Storage implements Iterable<Flat> {
 
 	private void findNewMinimum () {
 		this.currentMinimum = null;
-		for (Flat flat: this) {
+		for (Flat flat: this.set) {
 			if (this.currentMinimum == null || flat.compareTo(this.currentMinimum) < 0) {
 				this.currentMinimum = flat;
 			}

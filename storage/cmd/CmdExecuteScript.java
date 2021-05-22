@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import storage.*;
+import storage.client.*;
 
 /**
  * execute_script: run commands from a file as if from stdin
@@ -31,9 +32,10 @@ public final class CmdExecuteScript extends Cmd {
 			System.exit(1);
 		}
 
-		if (topLevel) {
-			Storage.getStorage().lockWrites();
-		}
+		// if (topLevel) {
+		// 	Storage.getStorage().lockWrites();
+		// }
+		// TODO: lock writes at client level
 		calls.add(scriptName);
 
 		Cmd failedCmd = null;
@@ -60,13 +62,14 @@ public final class CmdExecuteScript extends Cmd {
 
 		calls.remove(scriptName);
 		if (success && topLevel) {
-			try {
-				Storage.getStorage().unlockWrites();
-			} catch (IOException e) {
-				this.printMessage("Couldn'\t unlock writes to the database at the end of script "
-				                + scriptName);
-				success = false;
-			}
+			// try {
+			// 	Storage.getStorage().unlockWrites();
+			// } catch (IOException e) {
+			// 	this.printMessage("Couldn'\t unlock writes to the database at the end of script "
+			// 	                + scriptName);
+			// 	success = false;
+			// }
+			// TODO: unlock writes at client level
 		}
 		return success;
 	}
