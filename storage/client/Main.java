@@ -1,4 +1,4 @@
-package storage;
+package storage.client;
 
 import java.io.Writer;
 import java.io.Reader;
@@ -6,6 +6,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
+
+import storage.*;
+import storage.cmd.Cmd;
 
 public class Main {
 	public static void main (String[] args) {

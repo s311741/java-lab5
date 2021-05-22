@@ -1,6 +1,7 @@
-package storage;
+package storage.cmd;
 
 import java.io.IOException;
+import storage.*;
 
 /**
  * save: dump the current state of the collection to the file

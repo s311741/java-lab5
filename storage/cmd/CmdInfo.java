@@ -1,4 +1,6 @@
-package storage;
+package storage.cmd;
+
+import storage.*;
 
 /**
  * info: print info about the storage

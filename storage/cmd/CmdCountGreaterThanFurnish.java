@@ -1,4 +1,6 @@
-package storage;
+package storage.cmd;
+
+import storage.*;
 
 /**
  * count_greater_than_furnish: output all elements whose "furnish" parameter is greater than given

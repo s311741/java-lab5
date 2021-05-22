@@ -1,4 +1,6 @@
-package storage;
+package storage.cmd;
+
+import storage.*;
 
 /**
  * help: print out a help message

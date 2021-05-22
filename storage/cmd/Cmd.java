@@ -1,9 +1,11 @@
-package storage;
+package storage.cmd;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
 import java.util.HashMap;
+
+import storage.*;
 
 /**
  * The command class. A subclass exists for each possible command, and an object is created for each invocation

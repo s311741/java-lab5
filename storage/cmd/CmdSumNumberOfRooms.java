@@ -1,4 +1,6 @@
-package storage;
+package storage.cmd;
+
+import storage.*;
 
 /**
  * sum_of_number_of_rooms: print the sum of "numberOfRooms" parameter for all elements

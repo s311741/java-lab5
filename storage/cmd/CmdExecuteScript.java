@@ -1,10 +1,11 @@
-package storage;
+package storage.cmd;
 
 import java.util.HashSet;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import storage.*;
 
 /**
  * execute_script: run commands from a file as if from stdin

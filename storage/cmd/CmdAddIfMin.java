@@ -1,6 +1,7 @@
-package storage;
+package storage.cmd;
 
 import java.io.IOException;
+import storage.*;
 
 /**
  * add_if_min: add an element if it is lesser than the existing minimum (or there is no minimum yet).

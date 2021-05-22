@@ -1,4 +1,6 @@
-package storage;
+package storage.cmd;
+
+import storage.*;
 
 /**
  * filter_by_house: output elements whose "house" parameter is equal to the given house
