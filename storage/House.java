@@ -1,6 +1,7 @@
 package storage;
 
 import java.io.IOException;
+import java.io.Serializable;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -9,7 +10,7 @@ import storage.client.*;
 /**
  * A house in which a Flat can be
  */
-public class House {
+public class House implements Serializable {
 	private String name;
 	private Integer year;
 	private int numberOfFlatsOnFloor;

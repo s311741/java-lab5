@@ -4,13 +4,11 @@ import storage.*;
 import storage.client.*;
 
 /**
- * exit: exit the program
+ * exit: exit the client
  */
 public final class CmdExit extends Cmd {
-	public CmdExit (String[] a, Prompter p) { super(a, p); }
-
 	@Override
-	public boolean run () {
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
 		System.exit(0);
 		return true;
 	}

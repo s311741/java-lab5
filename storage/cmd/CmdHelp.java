@@ -9,8 +9,6 @@ import storage.client.*;
  * or whether this invocation is a result of the user entering an unknown command (failure)
  */
 public final class CmdHelp extends Cmd {
-	public CmdHelp (String[] a, Prompter p) { super(a, p); }
-
 	private static final String HELP_MESSAGE =
 		"commands:\n" +
 		"help           print this message\n" +
@@ -35,8 +33,8 @@ public final class CmdHelp extends Cmd {
 		"shutdown       shutdown remote server";
 
 	@Override
-	public boolean run () {
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
 		System.out.println(HELP_MESSAGE);
-		return this.arguments[0].equals("help");
+		return arguments[0].equals("help");
 	}
 }

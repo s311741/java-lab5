@@ -1,18 +1,21 @@
 package storage.cmd;
 
 import storage.*;
+import storage.server.*;
 import storage.client.*;
 
 /**
  * clear: remove all elements
  */
-public final class CmdClear extends Cmd {
-	public CmdClear (String[] a, Prompter p) { super(a, p); }
+public final class CmdClear extends NetworkedCmd {
+	@Override
+	public boolean runOnClient (String[] args, Prompter prompter) {
+		return true;
+	}
 
 	@Override
-	public boolean run () {
-		// Storage.getStorage().clear();
-		// TODO: request clear
-		return true;
+	public Response runOnServer () {
+		StorageServer.getServer().clear();
+		return new Response(true);
 	}
 }

@@ -2,35 +2,32 @@ package storage.cmd;
 
 import storage.*;
 import storage.client.*;
+import storage.server.*;
 
 /**
  * remove_by_id: remove an element with given ID, if any
  * ID must be given as an argument
  */
-public final class CmdRemoveByID extends Cmd {
-	public CmdRemoveByID (String[] a, Prompter p) { super(a, p); }
+public final class CmdRemoveByID extends NetworkedCmd {
+	private Integer id;
 
 	@Override
-	public boolean run () {
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
 		if (arguments.length < 2) {
-			this.printMessage("no ID given");
+			System.err.println(arguments[0] + ": no ID given");
 			return false;
 		}
-		final int id;
 		try {
-			id = Integer.parseInt(arguments[1]);
+			this.id = Integer.parseInt(arguments[1]);
 		} catch (IllegalArgumentException e) {
-			this.printMessage("invalid ID given");
+			System.err.println(arguments[0] + ": invalid ID given");
 			return false;
 		}
-		boolean success = true;
+		return true;
+	}
 
-		// boolean success = Storage.getStorage().removeByID(id);
-		// if (!success) {
-		// 	this.printMessage("failed to remove element from storage");
-		// }
-		// TODO: request removal
-
-		return success;
+	@Override
+	public Response runOnServer () {
+		return new Response(StorageServer.getServer().removeByID(this.id));
 	}
 }

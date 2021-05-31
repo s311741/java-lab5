@@ -2,17 +2,19 @@ package storage.cmd;
 
 import storage.*;
 import storage.client.*;
+import storage.server.*;
 
 /**
  * info: print info about the storage
  */
-public final class CmdInfo extends Cmd {
-	public CmdInfo (String[] a, Prompter p) { super(a, p); }
+public final class CmdInfo extends NetworkedCmd {
+	@Override
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
+		return true;
+	}
 
 	@Override
-	public boolean run () {
-		// System.out.println(Storage.getStorage().info());
-		// TODO: make a request for info
-		return true;
+	public Response runOnServer () {
+		return new Response(true, StorageServer.getServer().info());
 	}
 }

@@ -1,8 +1,10 @@
-CLASSPATH = .:./json-java.jar
+CLASSPATH := .:./json-java.jar
 
-JAVAC = javac
-JAVA = java
-JAR = jar
+JAVAC := javac
+JAVA := java
+JAR := jar
+
+PORT := 13666
 
 FILES_CLASS_COMMON := $(wildcard "storage/*.class" "storage/cmd/*.class")
 FILES_CLASS_CLIENT := $(FILES_CLASS_COMMON) $(wildcard "storage/client/*.class")
@@ -11,12 +13,12 @@ FILES_JAVA_ALL := $(shell find storage -type f -name '*.java')
 
 all: client.jar server.jar
 
-server: server.jar
-	@echo "Running $^"
-	@$(JAVA) -jar $^ 13666
-client: client.jar
-	@echo "Running $^"
-	@$(JAVA) -jar $^ localhost:13666
+server:
+	@echo "Running server.jar"
+	@$(JAVA) -jar server.jar $(PORT)
+client:
+	@echo "Running client.jar"
+	@$(JAVA) -jar client.jar localhost:$(PORT)
 
 all_classes: $(FILES_JAVA_ALL)
 	@echo "Compiling java files"

@@ -67,6 +67,7 @@ public class Main {
 		}
 
 		StorageClient.initialize(socketAddress);
+		StorageClient client = StorageClient.getClient();
 
 		if (sep < args.length-1) {
 			// There is a command in the argument list; run it and quit
@@ -75,13 +76,13 @@ public class Main {
 			for (int i = 0; i < numCmdWords; i++) {
 				cmdWords[i] = args[sep+1+i];
 			}
-			System.exit(Cmd.getCommandFromWords(cmdWords, prompt).run() ? 0 : 1);
+			System.exit(client.runCommand(cmdWords, prompt) ? 0 : 1);
 		}
 
 		// Interactive mode
 		try {
-			for (Cmd cmd; (cmd = Cmd.next(prompt)) != null; ) {
-				if (!cmd.run()) {
+			for (String[] cmdWords; (cmdWords = Cmd.nextCmdWords(prompt)) != null; ) {
+				if (!client.runCommand(cmdWords, prompt)) {
 					System.err.println("The command failed");
 				}
 			}

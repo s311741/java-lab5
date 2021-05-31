@@ -2,51 +2,48 @@ package storage.cmd;
 
 import storage.*;
 import storage.client.*;
+import storage.server.*;
 
 /**
  * update_id: replace the element with given ID with a new one
  * Input of the element required, ID is given as an argument
  */
-public final class CmdUpdateID extends Cmd {
-	public CmdUpdateID (String[] a, Prompter p) { super(a, p); }
+public final class CmdUpdateID extends NetworkedCmd {
+	private Flat element;
 
 	@Override
-	public boolean run () {
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
 		if (arguments.length < 2) {
-			this.printMessage("no ID given");
+			System.err.println(arguments[0] + ": no ID given");
 			return false;
 		}
-		final int id;
+		int id;
 		try {
 			id = Integer.parseInt(arguments[1]);
 		} catch (IllegalArgumentException e) {
-			this.printMessage("invalid ID given");
+			System.err.println(arguments[0] + ": invalid ID given");
 			return false;
 		}
-
-		Flat element;
 		try {
-			element = Flat.next(this.prompter).setID(id);
-		} catch (PrompterInputAbortedException e)  {
-			this.printMessage("input aborted while entering element");
+			this.element = Flat.next(prompter).setID(id);
+		} catch (PrompterInputAbortedException e) {
+			System.err.println(arguments[0] + ": input aborted while entering element");
 			return false;
 		}
+		return true;
+	}
 
-		boolean success = true;
-
-		// Storage storage = Storage.getStorage();
-		// boolean success = storage.removeByID(id);
-		// if (!success) {
-		// 	this.printMessage("failed to remove old element with id" + id);
-		// 	return false;
-		// }
-		// success = storage.add(element);
-		// if (!success) {
-		// 	this.printMessage("failed to add new element with id " + id);
-		// 	return false;
-		// }
-		// TODO: move this logic to server
-
-		return success;
+	@Override
+	public Response runOnServer () {
+		StorageServer server = StorageServer.getServer();
+		boolean success = server.removeByID(this.element.getID());
+		if (!success) {
+			return new Response(false, "Failed to remove old element with id " + this.element.getID());
+		}
+		success = server.add(element);
+		if (!success) {
+			return new Response(false, "Failed to insert the new element with id " + this.element.getID());
+		}
+		return new Response(true);
 	}
 }

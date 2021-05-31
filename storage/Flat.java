@@ -26,20 +26,6 @@ public final class Flat implements Comparable<Flat>, Serializable {
 	private Transport transport;
 	private House house;
 
-	public Flat setID (Integer id) {
-		if (this.id != null) {
-			throw new Error("Tried to set the ID of an element which already has one");
-		}
-		return this.forceUpdateID(id);
-	}
-	public Flat forceUpdateID (Integer id) {
-		if (id == null) {
-			throw new Error("Tried to set the ID of an element to null");
-		}
-		this.id = id;
-		return this;
-	}
-
 	/**
 	 * Ask a Prompter for a Flat
 	 * @param Prompter the I/O device
@@ -86,6 +72,20 @@ public final class Flat implements Comparable<Flat>, Serializable {
 	 * The house object (which this flat owns, not the other way around)
 	 */
 	public House getHouse () { return this.house; }
+
+	public Flat setID (Integer id) {
+		if (this.id != null) {
+			throw new Error("Tried to set the ID of an element which already has one");
+		}
+		return this.forceUpdateID(id);
+	}
+	public Flat forceUpdateID (Integer id) {
+		if (id == null) {
+			throw new Error("Tried to set the ID of an element to null");
+		}
+		this.id = id;
+		return this;
+	}
 
 	@Override
 	public String toString () {

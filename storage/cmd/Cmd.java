@@ -12,35 +12,15 @@ import storage.client.*;
  * The command class. A subclass exists for each possible command, and an object is created for each invocation
  */
 public abstract class Cmd {
-	protected final String[] arguments;
-	protected final Prompter prompter;
+	public Cmd () { }
 
 	/**
-	 * @param args The arguments of the command, the 0th one being the command name itself
+	 * Runs on the command's invocation on the client side
+	 * @return true iff the client's check has been successful
+	 * @param arguments The arguments of the command, the 0th one being the command name itself
 	 * @param prompter The prompter from which this command was run (the command may ask further info)
 	 */
-	public Cmd (String[] args, Prompter prompter) {
-		this.arguments = args;
-		this.prompter = prompter;
-	}
-
-	/**
-	 * This method is run on the object that is created for the invocation
-	 * @return true iff the invocation was successful
-	 */
-	public abstract boolean run ();
-
-	/**
-	 * Helper to print error messages while giving the command name
-	 */
-	public void printMessage (String message) {
-		System.err.println(this.arguments[0] + ": " + message);
-	}
-
-	@Override
-	public String toString () {
-		return String.join(" ", this.arguments);
-	}
+	public abstract boolean runOnClient (String[] arguments, Prompter prompter);
 
 	private static final HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
 	static {
@@ -50,7 +30,6 @@ public abstract class Cmd {
 		cmdsByName.put("exit", CmdExit.class);
 		cmdsByName.put("clear", CmdClear.class);
 		cmdsByName.put("show", CmdShow.class);
-		cmdsByName.put("save", CmdSave.class);
 		cmdsByName.put("execute_script", CmdExecuteScript.class);
 		cmdsByName.put("info", CmdInfo.class);
 		cmdsByName.put("update_id", CmdUpdateID.class);
@@ -63,27 +42,21 @@ public abstract class Cmd {
 		cmdsByName.put("shutdown", CmdShutdown.class);
 	}
 
-	private static final Class[] CMD_CTOR_ARGS = { String[].class, Prompter.class };
-
-	/**
-	 * Get the next command from Prompter input
-	 */
-	public static Cmd next (Prompter prompt) throws IOException {
+	public static String[] nextCmdWords (Prompter prompt) throws IOException {
 		final String line;
 		try {
 			line = prompt.nextLine("> ");
 		} catch (PrompterInputAbortedException e) {
 			return null;
 		}
-
-		final String[] words = line.split("\\s+");
-		CmdHistory.pushEntry(words[0]);
-		return getCommandFromWords(words, prompt);
+		return line.split("\\s+");
 	}
+
+	private static final Class[] CMD_CTOR_ARGS = { };
 
 	public static Cmd getCommandFromWords (String[] words, Prompter prompt) {
 		final String cmdName = words[0];
-		final Class<? extends Cmd> cmdClass = cmdsByName.getOrDefault(cmdName,CmdHelp.class);
+		final Class<? extends Cmd> cmdClass = cmdsByName.getOrDefault(cmdName, CmdHelp.class);
 		final Constructor ctor;
 		final Cmd cmd;
 		try {
@@ -92,10 +65,8 @@ public abstract class Cmd {
 			return null;
 		}
 
-		final Object[] instanceArgs = new Object[]{ words, prompt };
-
 		try {
-			cmd = (Cmd) ctor.newInstance(instanceArgs);
+			cmd = (Cmd) ctor.newInstance((Object[]) CMD_CTOR_ARGS);
 		}
 		catch (InstantiationException e) { return null; }
 		catch (IllegalAccessException e) { return null; }

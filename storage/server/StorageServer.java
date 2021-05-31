@@ -19,13 +19,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import storage.*;
 
-public class StorageServer {
+public class StorageServer implements Iterable<Flat> {
 	private static StorageServer instance = null;
 	private StorageServer () { }
 	/**
 	 * Get the instance of the singleton
 	 */
-	public static StorageServer getStorage () {
+	public static StorageServer getServer () {
 		if (instance == null) {
 			instance = new StorageServer();
 		}
@@ -106,10 +106,23 @@ public class StorageServer {
 	}
 
 	/**
-	 * Add an element, if there isn't an element with such ID already
-	 * @param element The element to add (with the ID filled in already)
+	 * Add an element, autogenerating its ID
+	 * @param element The element to add (with the ID null)
 	 */
 	public boolean add (Flat element) {
+		if (element.getID() != null) {
+			System.err.println("Received an element with non-null ID");
+			return false;
+		}
+		element.setID(this.nextID());
+		return this.addWithID(element);
+	}
+
+	/**
+	 * Add an element with the ID already filled in
+	 * @param element The element to add (with the ID filled in)
+	 */
+	public boolean addWithID (Flat element) {
 		if (this.setValuesByID.put(element.getID(), element) != null) {
 			return false;
 		}
@@ -188,6 +201,11 @@ public class StorageServer {
 			this.dumpToJson();
 		}
 		this.saveRequestedSinceLock = false;
+	}
+
+	@Override
+	public Iterator<Flat> iterator () {
+		return this.set.iterator();
 	}
 
 	/**

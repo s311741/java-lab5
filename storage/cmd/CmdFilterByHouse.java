@@ -2,34 +2,36 @@ package storage.cmd;
 
 import storage.*;
 import storage.client.*;
+import storage.server.*;
 
 /**
  * filter_by_house: output elements whose "house" parameter is equal to the given house
  * Input of the house element required
  */
-public final class CmdFilterByHouse extends Cmd {
-	public CmdFilterByHouse (String[] a, Prompter p) { super(a, p); }
+public final class CmdFilterByHouse extends NetworkedCmd {
+	private House reference;
 
 	@Override
-	public boolean run () {
-		final House reference;
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
 		try {
-			this.prompter.pushPrefix("reference house ");
-			reference = House.next(this.prompter);
+			prompter.pushPrefix("reference house ");
+			this.reference = House.next(prompter);
 		} catch (PrompterInputAbortedException e) {
-			this.printMessage("input aborted while entering element");
+			System.err.println(arguments[0] + ": input aborted while entering element");
 			return false;
 		} finally {
-			this.prompter.popPrefix();
+			prompter.popPrefix();
 		}
-
-		// for (Flat flat: Storage.getStorage()) {
-		// 	if (reference.equals(flat.getHouse())) {
-		// 		System.out.println(flat.toString());
-		// 	}
-		// }
-		// TODO: move this logic to server
-
 		return true;
+	}
+
+	@Override
+	public Response runOnServer () {
+		for (Flat flat: StorageServer.getServer()) {
+			if (this.reference.equals(flat.getHouse())) {
+				// add to response??
+			}
+		}
+		return new Response(true);
 	}
 }

@@ -2,32 +2,35 @@ package storage.cmd;
 
 import storage.*;
 import storage.client.*;
+import storage.server.*;
 
 /**
  * remove_lower: remove all elements which evaluate lower than given
  * Input of the element required
  */
-public final class CmdRemoveLower extends Cmd {
-	public CmdRemoveLower (String[] a, Prompter p) { super(a, p); }
+public final class CmdRemoveLower extends NetworkedCmd {
+	private Flat element;
 
 	@Override
-	public boolean run () {
-		Flat element;
+	public boolean runOnClient (String[] arguments, Prompter prompter) {
 		try {
-			element = Flat.next(this.prompter);
+			this.element = Flat.next(prompter);
 		} catch (PrompterInputAbortedException e) {
-			this.printMessage("input aborted while entering house");
+			System.err.println(arguments[0] + ": input aborted while entering element");
 			return false;
 		}
-
-		// Storage storage = Storage.getStorage();
-		// for (Flat flat: storage) {
-		// 	if (flat.compareTo(element) < 0 && !storage.removeByReference(flat)) {
-		// 		this.printMessage("failed to remove element with id " + flat.getID());
-		// 		return false;
-		// 	}
-		// }
-		// TODO: move this logic to server
 		return true;
+	}
+
+	@Override
+	public Response runOnServer () {
+		boolean success = true;
+		StorageServer server = StorageServer.getServer();
+		for (Flat flat: server) {
+			if (flat.compareTo(this.element) < 0 && !server.removeByReference(flat)) {
+				success = false;
+			}
+		}
+		return new Response(success);
 	}
 }

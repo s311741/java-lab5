@@ -2,9 +2,15 @@ package storage.server;
 
 import java.io.IOException;
 import java.net.*;
-import storage.Request;
+import storage.*;
+import storage.cmd.*;
 
 public class Main {
+	private static boolean mustShutdown = false;
+	public static void scheduleShutdown () {
+		mustShutdown = true;
+	}
+
 	public static void main (String[] args) {
 		if (args.length < 1) {
 			System.err.println("Must specify port");
@@ -18,33 +24,14 @@ public class Main {
 			System.exit(1);
 		}
 
-		DatagramSocket socket = null;
-		try {
-			socket = new DatagramSocket(port);
-		} catch (SocketException e) {
-			System.err.println("!!!");
-			System.exit(1);
-		}
-
-		byte[] buffer = new byte[Request.MAX_PACKET_LENGTH];
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
-		while (true) {
-			System.err.println("Waiting for command...");
-
-			Request request = null;
+		ServerCmdReceiver receiver = new ServerCmdReceiver(port);
+		while (!mustShutdown) {
 			try {
-				socket.receive(packet);
-				int length = packet.getLength();
-				request = Request.deserialize(buffer, length);
+				receiver.processNextPacket();
 			} catch (IOException e) {
-				System.err.println("I/O exception while waiting for command:\n" + e.getMessage());
+				System.err.println("I/O error while waiting for packet.");
+				e.printStackTrace();
 				continue;
-			}
-
-			switch (request.type) {
-			case SHUTDOWN:
-				System.exit(0);
 			}
 		}
 	}

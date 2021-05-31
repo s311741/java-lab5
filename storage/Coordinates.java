@@ -1,6 +1,7 @@
 package storage;
 
 import java.io.IOException;
+import java.io.Serializable;
 import org.json.JSONObject;
 import org.json.JSONException;
 import storage.client.*;
@@ -8,7 +9,7 @@ import storage.client.*;
 /**
  * Two coordinates, curiously stored in very different data types
  */
-public class Coordinates {
+public class Coordinates implements Serializable {
 	private float x;
 	private Double y;
 
