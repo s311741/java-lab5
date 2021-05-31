@@ -40,6 +40,7 @@ public abstract class Cmd {
 		cmdsByName.put("sum_of_number_of_rooms", CmdSumNumberOfRooms.class);
 		cmdsByName.put("filter_by_house", CmdFilterByHouse.class);
 		cmdsByName.put("shutdown", CmdShutdown.class);
+		cmdsByName.put("sync", CmdSync.class);
 	}
 
 	public static String[] nextCmdWords (Prompter prompt) throws IOException {

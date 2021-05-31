@@ -19,7 +19,7 @@ public final class ServerCmdReceiver {
 	private DatagramPacket packet;
 
 	public ServerCmdReceiver (int port) {
-		this.buffer = new byte[CommonConstants.CMD_PACKET_BUFFER_SIZE];
+		this.buffer = new byte[CommonConstants.PACKET_BUFFER_SIZE];
 
 		try {
 			this.socket = new DatagramSocket(port);
@@ -90,7 +90,7 @@ public final class ServerCmdReceiver {
 		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length,
 		                                    senderAddress, port));
 
-		final int packetCapacity = CommonConstants.CMD_PACKET_BUFFER_SIZE;
+		final int packetCapacity = CommonConstants.PACKET_BUFFER_SIZE;
 		int numPackets = (bufferResponse.length + packetCapacity - 1) / packetCapacity;
 
 		for (int i = 0; i < numPackets; i++) {

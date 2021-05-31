@@ -35,9 +35,6 @@ public class StorageServer implements Iterable<Flat> {
 	private String filename = "db.json";
 	private boolean fileExistsYet = true;
 
-	private boolean writesLocked = false;
-	private boolean saveRequestedSinceLock = false;
-
 	private static Date creationDate = new Date();
 
 	private LinkedHashSet<Flat> set = new LinkedHashSet<Flat>();
@@ -188,21 +185,6 @@ public class StorageServer implements Iterable<Flat> {
 		return this.set.isEmpty();
 	}
 
-	public void lockWrites () {
-		if (!this.writesLocked) {
-			this.writesLocked = true;
-			this.saveRequestedSinceLock = false;
-		}
-	}
-
-	public void unlockWrites () throws IOException {
-		this.writesLocked = false;
-		if (this.saveRequestedSinceLock) {
-			this.dumpToJson();
-		}
-		this.saveRequestedSinceLock = false;
-	}
-
 	@Override
 	public Iterator<Flat> iterator () {
 		return this.set.iterator();
@@ -212,11 +194,6 @@ public class StorageServer implements Iterable<Flat> {
 	 * Dump the database to the filename set by setFile()
 	 */
 	public void dumpToJson () throws IOException {
-		if (this.writesLocked) {
-			this.saveRequestedSinceLock = true;
-			return;
-		}
-
 		JSONObject db = new JSONObject();
 		JSONArray ja = new JSONArray();
 		for (Flat flat: this.set) {

@@ -22,13 +22,15 @@ public class StorageClient {
 	private StorageClient (SocketAddress addr) {
 		try {
 			this.socket = new DatagramSocket();
+			this.socket.setSoTimeout(CommonConstants.PACKET_TIMEOUT_MILLISECONDS);
 		} catch (SocketException e) {
-			System.err.println("Cannot create socket");
+			System.err.println("Cannot create socket:\n");
+			e.printStackTrace();
 			System.exit(1);
 		}
 		this.address = addr;
 
-		this.responseBuffer = new byte[CommonConstants.CMD_PACKET_BUFFER_SIZE];
+		this.responseBuffer = new byte[CommonConstants.PACKET_BUFFER_SIZE];
 		this.responsePacket = new DatagramPacket(this.responseBuffer, this.responseBuffer.length);
 	}
 
@@ -60,6 +62,9 @@ public class StorageClient {
 			try {
 				this.sendNetworkedCmd((NetworkedCmd) cmd);
 				response = this.receiveResponse();
+			} catch (SocketTimeoutException e) {
+				System.err.println("Response from server timed out: cannot be sure the command went through");
+				return false;
 			} catch (IOException e) {
 				System.err.println("I/O exception while sending request:\n");
 				e.printStackTrace();
@@ -96,7 +101,7 @@ public class StorageClient {
 		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length, this.address));
 
 		// send the command, in however many packets required
-		final int packetCapacity = CommonConstants.CMD_PACKET_BUFFER_SIZE;
+		final int packetCapacity = CommonConstants.PACKET_BUFFER_SIZE;
 		int numPackets = (bufferCmd.length + packetCapacity - 1) / packetCapacity;
 
 		for (int i = 0; i < numPackets; i++) {
@@ -106,7 +111,7 @@ public class StorageClient {
 		}
 	}
 
-	private Response receiveResponse () throws IOException {
+	private Response receiveResponse () throws IOException, SocketTimeoutException {
 		// get the number of packets
 		this.socket.receive(this.responsePacket);
 		final int responseSize;

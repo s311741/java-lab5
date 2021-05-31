@@ -15,7 +15,6 @@ public final class CmdHelp extends Cmd {
 		"exit           exit without saving\n" +
 		"info           show info about the database\n" +
 		"show           print out all elements in the collection\n" +
-		"save           save the database to file\n" +
 		"add            add an element\n" +
 		"clear          remove all elements\n" +
 		"update_id      update element with specified id\n" +
@@ -30,7 +29,8 @@ public final class CmdHelp extends Cmd {
 		"               print those elements whose house equals to given\n" +
 		"history        print the last commands entered, up to 13\n" +
 		"execute_script execute commands from a file as if from stdin\n" +
-		"shutdown       shutdown remote server";
+		"shutdown       shutdown remote server\n" +
+		"sync           force remote server to sync";
 
 	@Override
 	public boolean runOnClient (String[] arguments, Prompter prompter) {
