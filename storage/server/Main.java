@@ -29,7 +29,7 @@ public class Main {
 			try {
 				receiver.processNextPacket();
 			} catch (IOException e) {
-				System.err.println("I/O error while waiting for packet.");
+				System.err.println("I/O error while receiving packet:");
 				e.printStackTrace();
 				continue;
 			}

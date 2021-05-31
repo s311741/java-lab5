@@ -7,10 +7,15 @@ import storage.cmd.*;
 import java.util.Iterator;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 
 public class StorageClient {
-	DatagramSocket socket;
-	SocketAddress address;
+	private DatagramSocket socket;
+	private SocketAddress address;
+
+	private DatagramPacket responsePacket;
+	private byte[] responseBuffer;
 
 	private static StorageClient instance = null;
 
@@ -22,6 +27,9 @@ public class StorageClient {
 			System.exit(1);
 		}
 		this.address = addr;
+
+		this.responseBuffer = new byte[CommonConstants.CMD_PACKET_BUFFER_SIZE];
+		this.responsePacket = new DatagramPacket(this.responseBuffer, this.responseBuffer.length);
 	}
 
 	public static StorageClient getClient () {
@@ -48,43 +56,99 @@ public class StorageClient {
 		}
 
 		if (cmd instanceof NetworkedCmd) {
+			final Response response;
 			try {
-				final byte[] bufferCmd;
-				{
-					ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-					ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
-					objStream.writeObject(cmd);
-					bufferCmd = byteStream.toByteArray();
-				}
-
-				int packetCapacity = CommonConstants.CMD_PACKET_BUFFER_SIZE;
-				int numPackets = (bufferCmd.length + packetCapacity - 1) / packetCapacity;
-
-				final byte[] bufferNum;
-				{
-					ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-					ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
-					objStream.writeObject(new Integer(bufferCmd.length));
-					bufferNum = byteStream.toByteArray();
-				}
-
-				this.socket.send(new DatagramPacket(bufferNum, bufferNum.length, this.address));
-
-				for (int i = 0; i < numPackets; i++) {
-					int offset = packetCapacity * i;
-					int packetSize = Math.min(bufferCmd.length - offset, packetCapacity);
-					this.socket.send(new DatagramPacket(bufferCmd, offset, packetSize, this.address));
-				}
+				this.sendNetworkedCmd((NetworkedCmd) cmd);
+				response = this.receiveResponse();
 			} catch (IOException e) {
 				System.err.println("I/O exception while sending request:\n");
 				e.printStackTrace();
+				return false;
 			}
+
+			System.out.println(response);
 		}
 
 		this.history.push(arguments[0]);
 		return success;
 	}
 
+	private void sendNetworkedCmd (NetworkedCmd cmd) throws IOException {
+		// Send the command:
+
+		// serialize the command object
+		final byte[] bufferCmd;
+		{
+			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+			objectStream.writeObject(cmd);
+			bufferCmd = byteStream.toByteArray();
+		}
+
+		// first, send the sum size of further packets
+		final byte[] bufferNum;
+		{
+			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+			objectStream.writeObject(new Integer(bufferCmd.length));
+			bufferNum = byteStream.toByteArray();
+		}
+		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length, this.address));
+
+		// send the command, in however many packets required
+		final int packetCapacity = CommonConstants.CMD_PACKET_BUFFER_SIZE;
+		int numPackets = (bufferCmd.length + packetCapacity - 1) / packetCapacity;
+
+		for (int i = 0; i < numPackets; i++) {
+			int offset = packetCapacity * i;
+			int packetSize = Math.min(bufferCmd.length - offset, packetCapacity);
+			this.socket.send(new DatagramPacket(bufferCmd, offset, packetSize, this.address));
+		}
+	}
+
+	private Response receiveResponse () throws IOException {
+		// get the number of packets
+		this.socket.receive(this.responsePacket);
+		final int responseSize;
+		{
+			ByteArrayInputStream byteStream = new ByteArrayInputStream(this.responseBuffer, 0,
+			                                                           this.responseBuffer.length);
+			ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+			try {
+				responseSize = (int) (Integer) objectStream.readObject();
+			} catch (ClassNotFoundException e) {
+				System.err.println("Invalid response header received from server.");
+				e.printStackTrace();
+				return null;
+			}
+		}
+
+		// get the full response, in however many packets
+		byte[] fullResponse = new byte[responseSize];
+		for (int currentSize = 0, length;
+		     currentSize < responseSize;
+		     currentSize += length) {
+			this.socket.receive(this.responsePacket);
+			length = this.responsePacket.getLength();
+			System.arraycopy(this.responseBuffer, 0, fullResponse, currentSize, length);
+		}
+
+		final Response result;
+		{
+			ByteArrayInputStream byteStream = new ByteArrayInputStream(fullResponse, 0,
+			                                                           fullResponse.length);
+			ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+			try {
+				result = (Response) objectStream.readObject();
+			} catch (ClassNotFoundException e) {
+				System.err.println("Invalid response body received from server.");
+				e.printStackTrace();
+				return null;
+			}
+		}
+
+		return result;
+	}
 
 	private static class HistoryCircularBuffer implements Iterable<String> {
 		private int size;

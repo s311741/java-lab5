@@ -18,6 +18,6 @@ public final class CmdSumNumberOfRooms extends NetworkedCmd {
 		for (Flat flat: StorageServer.getServer()) {
 			answer += flat.getNumberOfRooms();
 		}
-		return new Response(true, new Long(answer));
+		return new Response(true, ""+ answer);
 	}
 }

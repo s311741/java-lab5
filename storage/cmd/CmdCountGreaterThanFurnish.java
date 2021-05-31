@@ -35,6 +35,6 @@ public final class CmdCountGreaterThanFurnish extends NetworkedCmd {
 				answer++;
 			}
 		}
-		return new Response(true, new Long(answer));
+		return new Response(true, ""+ answer);
 	}
 }

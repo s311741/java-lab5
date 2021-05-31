@@ -5,13 +5,14 @@ import java.util.HashMap;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayOutputStream;
 import storage.cmd.*;
 import storage.*;
 
 public final class ServerCmdReceiver {
 	private HashMap<InetAddress, CmdBuilder> connections;
 
-	private final int BUFFER_SIZE = 16384;
 	private byte[] buffer;
 
 	private DatagramSocket socket;
@@ -28,7 +29,6 @@ public final class ServerCmdReceiver {
 		}
 
 		this.packet = new DatagramPacket(this.buffer, this.buffer.length);
-
 		this.connections = new HashMap<InetAddress, CmdBuilder>();
 	}
 
@@ -44,32 +44,61 @@ public final class ServerCmdReceiver {
 			NetworkedCmd cmd = builder.getCmd();
 			if (cmd != null) {
 				// The command has been assembled. run it and remove the connection
-				this.runCommand(cmd);
+				this.runCommand(cmd, senderAddress, this.packet.getPort());
 				this.connections.remove(senderAddress);
 			}
 		} else {
 			// A new connection
-			ByteArrayInputStream byteStream = new ByteArrayInputStream(this.buffer, 0, this.buffer.length);
+			ByteArrayInputStream byteStream = new ByteArrayInputStream(this.buffer, 0,
+			                                                           this.buffer.length);
 			ObjectInputStream objectStream = new ObjectInputStream(byteStream);
-			final Integer commandLength;
+
+			final int commandLength;
 			try {
-				commandLength = (Integer) objectStream.readObject();
+				commandLength = (int) (Integer) objectStream.readObject();
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 				return;
 			}
+
 			CmdBuilder builder = new CmdBuilder(commandLength);
 			this.connections.put(senderAddress, builder);
 		}
 	}
 
-	private void runCommand (NetworkedCmd cmd) {
+	private void runCommand (NetworkedCmd cmd, InetAddress senderAddress, int port) throws IOException {
 		System.err.println("Received command " + cmd.getClass().getSimpleName());
 
-		// Response response = cmd.runOnServer();
-		// ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-		// ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-		// objectStream.writeObject(response);
+		Response response = cmd.runOnServer();
+
+		// Send response
+		final byte[] bufferResponse;
+		{
+			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+			objectStream.writeObject(response);
+			bufferResponse = byteStream.toByteArray();
+		}
+
+		final byte[] bufferNum;
+		{
+			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+			objectStream.writeObject(new Integer(bufferResponse.length));
+			bufferNum = byteStream.toByteArray();
+		}
+		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length,
+		                                    senderAddress, port));
+
+		final int packetCapacity = CommonConstants.CMD_PACKET_BUFFER_SIZE;
+		int numPackets = (bufferResponse.length + packetCapacity - 1) / packetCapacity;
+
+		for (int i = 0; i < numPackets; i++) {
+			int offset = packetCapacity * i;
+			int packetSize = Math.min(bufferResponse.length - offset, packetCapacity);
+			this.socket.send(new DatagramPacket(bufferResponse, offset, packetSize,
+			                                    senderAddress, port));
+		}
 	}
 }
 
