@@ -28,13 +28,9 @@ public final class CmdCountGreaterThanFurnish extends NetworkedCmd {
 
 	@Override
 	public Response runOnServer () {
-		long answer = 0;
-		for (Flat flat: StorageServer.getServer()) {
-			Furnish furnish = flat.getFurnish();
-			if (furnish != null && furnish.ordinal() > threshold.ordinal()) {
-				answer++;
-			}
-		}
+		int answer = (int) StorageServer.getServer().stream()
+				.filter(flat -> (flat.getFurnish().compareTo(this.threshold) > 0))
+				.count();
 		return new Response(true, ""+ answer);
 	}
 }

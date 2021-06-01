@@ -51,6 +51,7 @@ public class Main {
 			int colon = hostPort.indexOf(':');
 			if (colon == -1) {
 				System.err.println("Must specify host address as host:port");
+				System.exit(1);
 			}
 			String host = hostPort.substring(0, colon);
 			try {

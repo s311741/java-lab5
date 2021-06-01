@@ -27,14 +27,9 @@ public final class CmdFilterByHouse extends NetworkedCmd {
 
 	@Override
 	public Response runOnServer () {
-		final StringBuilder sb = new StringBuilder();
-
-		for (Flat flat: StorageServer.getServer()) {
-			if (this.reference.equals(flat.getHouse())) {
-				sb.append(flat.toString());
-			}
-		}
-
+		StringBuilder sb = StorageServer.getServer().stream()
+				.filter(flat -> flat.getHouse().equals(this.reference))
+				.collect(StringBuilder::new, StringBuilder::append, StringBuilder::append);
 		return new Response(true, sb.length() != 0 ? sb.toString() : "No items to show");
 	}
 }

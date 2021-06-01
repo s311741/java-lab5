@@ -15,17 +15,9 @@ public final class CmdShow extends NetworkedCmd {
 
 	@Override
 	public Response runOnServer () {
-		StorageServer server = StorageServer.getServer();
-		if (server.isEmpty()) {
-			return new Response(true, "No items to show");
-		}
-
-		StringBuilder sb = new StringBuilder();
-		for (Flat flat: server) {
-			sb.append(flat.toString());
-			sb.append('\n');
-		}
-
-		return new Response(true, sb.toString());
+		StringBuilder sb = StorageServer.getServer().stream()
+				.sorted((a, b) -> (a.getName().compareTo(b.getName())))
+				.collect(StringBuilder::new, StringBuilder::append, StringBuilder::append);
+		return new Response(true, sb.length() != 0 ? sb.toString() : "No items to show");
 	}
 }

@@ -1,5 +1,24 @@
 {
-    "idGen": 4,
-    "creationDate": 1619128100108,
-    "db": []
+    "idGen": 1,
+    "creationDate": 1622529249923,
+    "db": [{
+        "area": 31,
+        "view": "GOOD",
+        "name": "2",
+        "coordinates": {
+            "x": 2,
+            "y": 31
+        },
+        "numberOfRooms": 3,
+        "id": 0,
+        "transport": "NONE",
+        "creationDate": 1622529253389,
+        "house": {
+            "numberOfLifts": 3,
+            "year": 3,
+            "name": "somehouse",
+            "numberOfFlatsOnFloor": 3
+        },
+        "furnish": "FINE"
+    }]
 }

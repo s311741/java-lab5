@@ -63,6 +63,7 @@ public final class Flat implements Comparable<Flat>, Serializable {
 	 * Internal ID within the collection
 	 */
 	public Integer getID () { return this.id; }
+	public String getName () { return this.name; }
 	/**
 	 * State of furnishment
 	 */

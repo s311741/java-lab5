@@ -24,6 +24,8 @@ public class Main {
 			System.exit(1);
 		}
 
+		StorageServer.getServer().tryPopulateFromFile();
+
 		ServerCmdReceiver receiver = new ServerCmdReceiver(port);
 		while (!mustShutdown) {
 			try {
@@ -34,5 +36,8 @@ public class Main {
 				continue;
 			}
 		}
+
+		// save on exit
+		StorageServer.getServer().tryDumpToJson();
 	}
 }

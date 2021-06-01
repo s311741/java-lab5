@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.stream.Stream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.nio.file.Files;
@@ -174,6 +175,10 @@ public class StorageServer implements Iterable<Flat> {
 		this.setValuesByID.clear();
 	}
 
+	public Stream<Flat> stream () {
+		return this.set.stream();
+	}
+
 	/**
 	 * Retrieve the element that is currently evaluated lesser than otheres
 	 */
@@ -193,7 +198,7 @@ public class StorageServer implements Iterable<Flat> {
 	/**
 	 * Dump the database to the filename set by setFile()
 	 */
-	public void dumpToJson () throws IOException {
+	public boolean tryDumpToJson () {
 		JSONObject db = new JSONObject();
 		JSONArray ja = new JSONArray();
 		for (Flat flat: this.set) {
@@ -204,11 +209,18 @@ public class StorageServer implements Iterable<Flat> {
 		db.put("creationDate", this.creationDate.getTime());
 		db.put("db", ja);
 
-		OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(this.filename), "UTF-8");
-		w.write(db.toString(4));
-		w.close();
+		try {
+			OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(this.filename), "UTF-8");
+			w.write(db.toString(4));
+			w.close();
+		} catch (IOException e) {
+			System.err.println("Failed to dump the DB to JSON:");
+			e.printStackTrace();
+			return false;
+		}
 
 		this.fileExistsYet = true;
+		return true;
 	}
 
 	/**
@@ -237,7 +249,7 @@ public class StorageServer implements Iterable<Flat> {
 			for (int i = 0; i < size; i++) {
 				boolean success;
 				try {
-					success = this.add(Flat.fromJson(ja.getJSONObject(i)));
+					success = this.addWithID(Flat.fromJson(ja.getJSONObject(i)));
 				} catch (JSONException e) {
 					success = false;
 				}

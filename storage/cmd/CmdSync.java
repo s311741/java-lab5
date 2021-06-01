@@ -16,13 +16,7 @@ public final class CmdSync extends NetworkedCmd {
 
 	@Override
 	public Response runOnServer () {
-		boolean success = true;
-		try {
-			StorageServer.getServer().dumpToJson();
-		} catch (IOException e) {
-			System.err.println("Failed to sync the DB");
-			success = false;
-		}
+		boolean success = StorageServer.getServer().tryDumpToJson();
 		return new Response(success);
 	}
 }
