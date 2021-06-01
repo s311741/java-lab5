@@ -1,6 +1,8 @@
 package storage.client;
 
 import java.io.IOException;
+import java.nio.channels.DatagramChannel;
+import java.nio.ByteBuffer;
 import java.net.*;
 import storage.*;
 import storage.cmd.*;
@@ -11,27 +13,20 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 
 public class StorageClient {
-	private DatagramSocket socket;
+	private DatagramChannel channel;
 	private SocketAddress address;
-
-	private DatagramPacket responsePacket;
-	private byte[] responseBuffer;
 
 	private static StorageClient instance = null;
 
 	private StorageClient (SocketAddress addr) {
 		try {
-			this.socket = new DatagramSocket();
-			this.socket.setSoTimeout(CommonConstants.PACKET_TIMEOUT_MILLISECONDS);
-		} catch (SocketException e) {
-			System.err.println("Cannot create socket:\n");
+			this.channel = DatagramChannel.open();
+		} catch (IOException e) {
+			System.err.println("Failed to open datagram channel:");
 			e.printStackTrace();
 			System.exit(1);
 		}
 		this.address = addr;
-
-		this.responseBuffer = new byte[CommonConstants.PACKET_BUFFER_SIZE];
-		this.responsePacket = new DatagramPacket(this.responseBuffer, this.responseBuffer.length);
 	}
 
 	public static StorageClient getClient () {
@@ -79,8 +74,6 @@ public class StorageClient {
 	}
 
 	private void sendNetworkedCmd (NetworkedCmd cmd) throws IOException {
-		// Send the command:
-
 		// serialize the command object
 		final byte[] bufferCmd;
 		{
@@ -91,14 +84,13 @@ public class StorageClient {
 		}
 
 		// first, send the sum size of further packets
-		final byte[] bufferNum;
 		{
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
 			objectStream.writeObject(bufferCmd.length);
-			bufferNum = byteStream.toByteArray();
+			byte[] ba = byteStream.toByteArray();
+			this.channel.send(ByteBuffer.wrap(ba), this.address);
 		}
-		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length, this.address));
 
 		// send the command, in however many packets required
 		final int packetCapacity = CommonConstants.PACKET_BUFFER_SIZE;
@@ -107,17 +99,20 @@ public class StorageClient {
 		for (int i = 0; i < numPackets; i++) {
 			int offset = packetCapacity * i;
 			int packetSize = Math.min(bufferCmd.length - offset, packetCapacity);
-			this.socket.send(new DatagramPacket(bufferCmd, offset, packetSize, this.address));
+			this.channel.send(ByteBuffer.wrap(bufferCmd, offset, packetSize), this.address);
 		}
 	}
 
 	private Response receiveResponse () throws IOException, SocketTimeoutException {
+		ByteBuffer buffer = ByteBuffer.allocate(CommonConstants.PACKET_BUFFER_SIZE);
+		byte[] ba = buffer.array();
+
+		this.channel.receive(buffer);
+
 		// get the number of packets
-		this.socket.receive(this.responsePacket);
 		final int responseSize;
 		{
-			ByteArrayInputStream byteStream = new ByteArrayInputStream(this.responseBuffer, 0,
-			                                                           this.responseBuffer.length);
+			ByteArrayInputStream byteStream = new ByteArrayInputStream(ba, 0, ba.length);
 			ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 			try {
 				responseSize = (int) (Integer) objectStream.readObject();
@@ -133,9 +128,10 @@ public class StorageClient {
 		for (int currentSize = 0, length;
 		     currentSize < responseSize;
 		     currentSize += length) {
-			this.socket.receive(this.responsePacket);
-			length = this.responsePacket.getLength();
-			System.arraycopy(this.responseBuffer, 0, fullResponse, currentSize, length);
+
+			this.channel.receive((ByteBuffer) buffer.rewind());
+			length = buffer.position();
+			System.arraycopy(ba, 0, fullResponse, currentSize, length);
 		}
 
 		final Response result;
