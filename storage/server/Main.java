@@ -1,6 +1,9 @@
 package storage.server;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.OutputStreamWriter;
 import java.net.*;
 import storage.*;
 import storage.cmd.*;
@@ -24,10 +27,14 @@ public class Main {
 			System.exit(1);
 		}
 
+		Thread serverInputThread = new Thread(Main::serverInput);
+
 		StorageServer.getServer().tryPopulateFromFile();
 
+		serverInputThread.start();
+
 		ServerCmdReceiver receiver = new ServerCmdReceiver(port);
-		while (!mustShutdown) {
+		while (true) {
 			try {
 				receiver.processNextPacket();
 			} catch (IOException e) {
@@ -36,8 +43,26 @@ public class Main {
 				continue;
 			}
 		}
+	}
 
-		// save on exit
-		StorageServer.getServer().tryDumpToJson();
+	private static void serverInput () {
+		Prompter prompt = new Prompter(new BufferedReader(new InputStreamReader(System.in)),
+			                               new OutputStreamWriter(System.out));
+			try {
+				for (String line; (line = prompt.nextLine("")) != null; ) {
+					if (line.equals("shutdown")) {
+						break;
+					} else if (line.equals("sync")) {
+						StorageServer.getServer().tryDumpToJson();
+					} else {
+						System.err.println("The server only accepts the commands \"sync\"" +
+						                   " and \"shutdown\". Other commands are only accepted from clients");
+					}
+				}
+			} catch (PrompterInputAbortedException e) {
+			}
+
+			StorageServer.getServer().tryDumpToJson();
+			System.exit(0);
 	}
 }

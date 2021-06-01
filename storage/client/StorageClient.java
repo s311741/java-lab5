@@ -95,7 +95,7 @@ public class StorageClient {
 		{
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-			objectStream.writeObject(new Integer(bufferCmd.length));
+			objectStream.writeObject(bufferCmd.length);
 			bufferNum = byteStream.toByteArray();
 		}
 		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length, this.address));

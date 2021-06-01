@@ -67,7 +67,7 @@ public final class ServerCmdReceiver {
 	}
 
 	private void runCommand (NetworkedCmd cmd, InetAddress senderAddress, int port) throws IOException {
-		System.err.println("Received command " + cmd.getClass().getSimpleName());
+		System.err.println("Running command " + cmd.getClass().getSimpleName());
 
 		Response response = cmd.runOnServer();
 
@@ -80,14 +80,14 @@ public final class ServerCmdReceiver {
 			bufferResponse = byteStream.toByteArray();
 		}
 
-		final byte[] bufferNum;
+		final byte[] bufferResponseLen;
 		{
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-			objectStream.writeObject(new Integer(bufferResponse.length));
-			bufferNum = byteStream.toByteArray();
+			objectStream.writeObject(bufferResponse.length);
+			bufferResponseLen = byteStream.toByteArray();
 		}
-		this.socket.send(new DatagramPacket(bufferNum, bufferNum.length,
+		this.socket.send(new DatagramPacket(bufferResponseLen, bufferResponseLen.length,
 		                                    senderAddress, port));
 
 		final int packetCapacity = CommonConstants.PACKET_BUFFER_SIZE;

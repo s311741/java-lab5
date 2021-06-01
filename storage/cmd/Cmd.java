@@ -24,23 +24,21 @@ public abstract class Cmd {
 
 	private static final HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
 	static {
-		cmdsByName.put("help", CmdHelp.class);
 		cmdsByName.put("add", CmdAdd.class);
-		cmdsByName.put("history", CmdHistory.class);
-		cmdsByName.put("exit", CmdExit.class);
-		cmdsByName.put("clear", CmdClear.class);
-		cmdsByName.put("show", CmdShow.class);
-		cmdsByName.put("execute_script", CmdExecuteScript.class);
-		cmdsByName.put("info", CmdInfo.class);
-		cmdsByName.put("update_id", CmdUpdateID.class);
-		cmdsByName.put("remove_by_id", CmdRemoveByID.class);
 		cmdsByName.put("add_if_min", CmdAddIfMin.class);
-		cmdsByName.put("remove_lower", CmdRemoveLower.class);
+		cmdsByName.put("clear", CmdClear.class);
 		cmdsByName.put("count_greater_than_furnish", CmdCountGreaterThanFurnish.class);
-		cmdsByName.put("sum_of_number_of_rooms", CmdSumNumberOfRooms.class);
+		cmdsByName.put("execute_script", CmdExecuteScript.class);
+		cmdsByName.put("exit", CmdExit.class);
 		cmdsByName.put("filter_by_house", CmdFilterByHouse.class);
-		cmdsByName.put("shutdown", CmdShutdown.class);
-		cmdsByName.put("sync", CmdSync.class);
+		cmdsByName.put("help", CmdHelp.class);
+		cmdsByName.put("history", CmdHistory.class);
+		cmdsByName.put("info", CmdInfo.class);
+		cmdsByName.put("remove_by_id", CmdRemoveByID.class);
+		cmdsByName.put("remove_lower", CmdRemoveLower.class);
+		cmdsByName.put("show", CmdShow.class);
+		cmdsByName.put("sum_of_number_of_rooms", CmdSumNumberOfRooms.class);
+		cmdsByName.put("update_id", CmdUpdateID.class);
 	}
 
 	public static String[] nextCmdWords (Prompter prompt) throws IOException {

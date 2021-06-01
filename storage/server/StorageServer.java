@@ -198,7 +198,7 @@ public class StorageServer implements Iterable<Flat> {
 	/**
 	 * Dump the database to the filename set by setFile()
 	 */
-	public boolean tryDumpToJson () {
+	public synchronized boolean tryDumpToJson () {
 		JSONObject db = new JSONObject();
 		JSONArray ja = new JSONArray();
 		for (Flat flat: this.set) {
