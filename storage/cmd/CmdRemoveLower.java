@@ -27,7 +27,7 @@ public final class CmdRemoveLower extends NetworkedCmd {
 		boolean success = true;
 		StorageServer server = StorageServer.getServer();
 		for (Flat flat: server) {
-			if (flat.compareTo(this.element) < 0 && !server.removeByReference(flat)) {
+			if (flat.compareTo(this.element) < 0 && !server.removeByID(flat.getID())) {
 				success = false;
 			}
 		}

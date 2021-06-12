@@ -6,9 +6,6 @@ import java.util.LinkedHashSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.FileSystems;
 import storage.*;
 import java.sql.*;
 
@@ -60,13 +57,9 @@ public class StorageServer implements Iterable<Flat> {
 
 		try {
 			PreparedStatement st = element.prepareStatement(this.dbConnection, "flats");
-			int rows = st.executeUpdate();
-
-			if (rows == 0) {
+			if (st.executeUpdate() == 0) {
 				throw new SQLException("No rows affected");
 			}
-			System.err.println("rows: " + rows);
-
 			ResultSet keys = st.getGeneratedKeys();
 			if (keys.next()) {
 				element.forceUpdateID(keys.getInt(1));
@@ -100,6 +93,15 @@ public class StorageServer implements Iterable<Flat> {
 		if (element == null) {
 			return false;
 		}
+
+		try {
+			this.dbStatement.execute("DELETE FROM flats WHERE id = " + id);
+		} catch (SQLException e) {
+			System.err.println("Failed to delete element:");
+			e.printStackTrace();
+			return false;
+		}
+
 		this.setValuesByID.remove(id);
 		this.set.remove(element);
 
@@ -110,26 +112,17 @@ public class StorageServer implements Iterable<Flat> {
 	}
 
 	/**
-	 * Remove an element, given the reference to it
-	 * @param flat The element to remove
-	 */
-	public boolean removeByReference (Flat flat) {
-		if (!this.set.contains(flat)) {
-			return false;
-		}
-		this.setValuesByID.remove(flat.getID());
-		this.set.remove(flat);
-
-		if (flat == this.currentMinimum) {
-			this.findNewMinimum();
-		}
-		return true;
-	}
-
-	/**
 	 * Remove all elements
 	 */
 	public void clear () {
+		try {
+			this.dbStatement.execute("DELETE FROM flats");
+		} catch (SQLException e) {
+			System.err.println("Failed to clear database:");
+			e.printStackTrace();
+			return;
+		}
+
 		this.currentMinimum = null;
 		this.set.clear();
 		this.setValuesByID.clear();
