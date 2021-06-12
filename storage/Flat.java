@@ -7,9 +7,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import org.json.JSONObject;
-import org.json.JSONException;
 import storage.client.*;
+import java.sql.*;
 
 /**
  * The subject matter of the collection, a representation of some real estate.
@@ -102,57 +101,6 @@ public final class Flat implements Comparable<Flat>, Serializable {
 		       "\ncreated at: " + this.creationDate.toString() + "\n";
 	}
 
-	public JSONObject toJson () {
-		JSONObject jo = new JSONObject();
-		jo.put("id", this.id);
-		jo.put("creationDate", this.creationDate.getTime());
-		jo.put("name", this.name);
-		jo.put("coordinates", this.coordinates.toJson());
-		jo.put("area", this.area);
-		jo.put("numberOfRooms", this.numberOfRooms);
-		if (this.furnish != null) {
-			jo.put("furnish", this.furnish);
-		}
-		jo.put("view", this.view);
-		if (this.transport != null) {
-			jo.put("transport", this.transport);
-		}
-		jo.put("house", this.house.toJson());
-		return jo;
-	}
-
-	public static Flat fromJson (JSONObject jo) throws JSONException {
-		Flat result = new Flat();
-
-		result.id = jo.getInt("id");
-		result.name = jo.getString("name");
-		result.creationDate = new Date(jo.getLong("creationDate"));
-		result.coordinates = Coordinates.fromJson(jo.getJSONObject("coordinates"));
-		result.area = jo.getLong("area");
-		result.numberOfRooms = jo.getLong("numberOfRooms");
-
-		try {
-			try {
-				result.furnish = Enum.valueOf(Furnish.class, jo.getString("furnish").toUpperCase());
-			} catch (JSONException e) {
-				result.furnish = null;
-			}
-			result.view = Enum.valueOf(View.class, jo.getString("view").toUpperCase());
-			try {
-				result.transport = Enum.valueOf(Transport.class, jo.getString("transport").toUpperCase());
-			} catch (JSONException e) {
-				result.transport = null;
-			}
-		} catch (IllegalArgumentException e) {
-			System.err.println("Failed to parse a enum value in element with id " + result.id.toString());
-			return null;
-		}
-
-		result.house = House.fromJson(jo.getJSONObject("house"));
-
-		return result;
-	}
-
 	/**
 	 * Compares the flats by, in order of importance:
 	 * - area
@@ -177,5 +125,58 @@ public final class Flat implements Comparable<Flat>, Serializable {
 			return this.transport.ordinal() - other.transport.ordinal();
 		}
 		return 0;
+	}
+
+	public static Flat fromSQLResult (ResultSet s, int i) throws SQLException {
+		Flat flat = new Flat();
+
+		flat.id = s.getInt(++i);
+		flat.name = s.getString(++i);
+
+		flat.coordinates = Coordinates.fromSQLResult(s, i);
+		i += 2;
+
+		flat.creationDate = new Date(s.getLong(++i));
+		flat.area = s.getLong(++i);
+		flat.numberOfRooms = s.getLong(++i);
+
+		String str;
+		if ((str = s.getString(++i)) != null) {
+			flat.furnish = Enum.valueOf(Furnish.class, str);
+		}
+		flat.view = Enum.valueOf(View.class, s.getString(++i));
+		if ((str = s.getString(++i)) != null) {
+			flat.transport = Enum.valueOf(Transport.class, str);
+		}
+
+		flat.house = House.fromSQLResult(s, i);
+		i += 4;
+
+		return flat;
+	}
+
+	public PreparedStatement prepareStatement (Connection conn, String tableName) throws SQLException {
+		final String tableFields = "(name,coord_x,coord_y,created_unixtime,area,num_rooms,"
+		                          + "furnish,view,transport,house_name,"
+		                          + "house_year,house_num_flats,house_num_lifts)";
+		final String questionMarks = "(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		final String query = "INSERT INTO " + tableName + tableFields + " VALUES " + questionMarks;
+
+		PreparedStatement s = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+		int i = 0;
+		s.setString(++i, this.name);
+		s.setFloat (++i, this.coordinates.getX());
+		s.setDouble(++i, this.coordinates.getY());
+		s.setLong  (++i, this.creationDate.getTime());
+		s.setLong  (++i, this.area);
+		s.setLong  (++i, this.numberOfRooms);
+		s.setObject(++i, this.furnish, java.sql.Types.OTHER);
+		s.setObject(++i, this.view, java.sql.Types.OTHER);
+		s.setObject(++i, this.transport, java.sql.Types.OTHER);
+		s.setString(++i, this.house.getName());
+		s.setInt   (++i, this.house.getYear());
+		s.setInt   (++i, this.house.getNumberOfFlatsOnFloor());
+		s.setLong  (++i, this.house.getNumberOfLifts());
+		return s;
 	}
 }

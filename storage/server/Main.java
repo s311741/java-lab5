@@ -29,7 +29,11 @@ public class Main {
 
 		Thread serverInputThread = new Thread(Main::serverInput);
 
-		StorageServer.getServer().tryPopulateFromFile();
+		if (!StorageServer.getServer().tryConnectToDatabase()) {
+			System.exit(1);
+		}
+
+		System.err.println("Ready...");
 
 		serverInputThread.start();
 
@@ -51,18 +55,15 @@ public class Main {
 			try {
 				for (String line; (line = prompt.nextLine("")) != null; ) {
 					if (line.equals("shutdown")) {
+						System.out.println("Shutting down.");
 						break;
-					} else if (line.equals("sync")) {
-						StorageServer.getServer().tryDumpToJson();
 					} else {
-						System.err.println("The server only accepts the commands \"sync\"" +
-						                   " and \"shutdown\". Other commands are only accepted from clients");
+						System.err.println("The server only accepts the command \"shutdown\". "
+						                 + "Other commands are only accepted from clients");
 					}
 				}
-			} catch (PrompterInputAbortedException e) {
-			}
+			} catch (PrompterInputAbortedException e) { }
 
-			StorageServer.getServer().tryDumpToJson();
 			System.exit(0);
 	}
 }

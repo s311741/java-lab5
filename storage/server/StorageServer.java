@@ -1,24 +1,16 @@
 package storage.server;
 
-import java.io.OutputStreamWriter;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Date;
 import java.util.LinkedHashSet;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.stream.Stream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.FileSystems;
-import org.json.JSONObject;
-import org.json.JSONArray;
-import org.json.JSONException;
 import storage.*;
+import java.sql.*;
 
 public class StorageServer implements Iterable<Flat> {
 	private static StorageServer instance = null;
@@ -33,15 +25,15 @@ public class StorageServer implements Iterable<Flat> {
 		return instance;
 	}
 
-	private String filename = "db.json";
-	private boolean fileExistsYet = true;
-
 	private static Date creationDate = new Date();
 
 	private LinkedHashSet<Flat> set = new LinkedHashSet<Flat>();
 	private HashMap<Integer, Flat> setValuesByID = new HashMap<Integer, Flat>();
 	private Flat currentMinimum = null;
-	private int idGen = 0;
+
+	private static final String dbUrl = "jdbc:postgresql://localhost:5432/flats?user=postgres";
+	private Connection dbConnection;
+	private Statement dbStatement;
 
 	/**
 	 * Get some human-readable information about the internals of the storage
@@ -53,54 +45,7 @@ public class StorageServer implements Iterable<Flat> {
 		       (this.currentMinimum == null
 		                ? "Minimum doesn\'t exist"
 		                : "Minimum has id " + this.currentMinimum.getID().toString()) + "\n" +
-		       "next available ID = " + Integer.toString(this.idGen) + "\n" +
-		       "filename = " + this.filename + "\n" +
 		       "created at: " + this.creationDate.toString() + "\n";
-	}
-
-	/**
-	 * Get a new ID for an element
-	 */
-	public int nextID () {
-		return this.idGen++;
-	}
-
-	/**
-	 * Set the filename to back the database
-	 */
-	public boolean setFile (String filename) {
-		Path path = FileSystems.getDefault().getPath(filename).normalize();
-
-		if (!Files.exists(path)) {
-			this.fileExistsYet = false;
-
-			System.err.print("No such file: " + filename);
-
-			try {
-				Files.createFile(path);
-			} catch (IOException e) {
-				System.err.println(" and failed to create it");
-				return false;
-			}
-
-			System.err.println(" - created, will populate on save");
-			return true;
-		}
-
-		this.fileExistsYet = true;
-
-		if (!Files.isReadable(path)) {
-			System.err.println("The file " + filename + " is not readable");
-			return false;
-		}
-
-		if (!Files.isWritable(path)) {
-			System.err.println("The file " + filename + " is not writable");
-			return false;
-		}
-
-		this.filename = filename;
-		return true;
 	}
 
 	/**
@@ -112,21 +57,37 @@ public class StorageServer implements Iterable<Flat> {
 			System.err.println("Received an element with non-null ID");
 			return false;
 		}
-		element.setID(this.nextID());
-		return this.addWithID(element);
-	}
 
-	/**
-	 * Add an element with the ID already filled in
-	 * @param element The element to add (with the ID filled in)
-	 */
-	public boolean addWithID (Flat element) {
-		if (this.setValuesByID.put(element.getID(), element) != null) {
+		try {
+			PreparedStatement st = element.prepareStatement(this.dbConnection, "flats");
+			int rows = st.executeUpdate();
+
+			if (rows == 0) {
+				throw new SQLException("No rows affected");
+			}
+			System.err.println("rows: " + rows);
+
+			ResultSet keys = st.getGeneratedKeys();
+			if (keys.next()) {
+				element.forceUpdateID(keys.getInt(1));
+			} else {
+				throw new SQLException("No ID obtained");
+			}
+		} catch (SQLException e) {
+			System.err.println("Failed to add element:");
+			e.printStackTrace();
 			return false;
 		}
+
+		if (this.setValuesByID.put(element.getID(), element) != null) {
+			System.err.println("Managed to assign an element an existing ID, somehow");
+			System.exit(1);
+		}
+
 		if (this.currentMinimum == null || element.compareTo(this.currentMinimum) < 0) {
 			this.currentMinimum = element;
 		}
+
 		return this.set.add(element);
 	}
 
@@ -146,7 +107,6 @@ public class StorageServer implements Iterable<Flat> {
 			this.findNewMinimum();
 		}
 		return true;
-
 	}
 
 	/**
@@ -180,7 +140,7 @@ public class StorageServer implements Iterable<Flat> {
 	}
 
 	/**
-	 * Retrieve the element that is currently evaluated lesser than otheres
+	 * Retrieve the element that is currently evaluated lesser than others
 	 */
 	public Flat getCurrentMinimum () {
 		return this.currentMinimum;
@@ -195,83 +155,74 @@ public class StorageServer implements Iterable<Flat> {
 		return this.set.iterator();
 	}
 
-	/**
-	 * Dump the database to the filename set by setFile()
-	 */
-	public synchronized boolean tryDumpToJson () {
-		JSONObject db = new JSONObject();
-		JSONArray ja = new JSONArray();
-		for (Flat flat: this.set) {
-			ja.put(flat.toJson());
-		}
-
-		db.put("idGen", this.idGen);
-		db.put("creationDate", this.creationDate.getTime());
-		db.put("db", ja);
-
+	public boolean tryConnectToDatabase () {
+		// Load database driver
 		try {
-			OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(this.filename), "UTF-8");
-			w.write(db.toString(4));
-			w.close();
-		} catch (IOException e) {
-			System.err.println("Failed to dump the DB to JSON:");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			System.err.println("Cannot load DB driver:");
 			e.printStackTrace();
 			return false;
 		}
 
-		this.fileExistsYet = true;
-		return true;
-	}
-
-	/**
-	 * Attempt to populate the storage from its file, or, if anything is wrong, complain and do nothing
-	 */
-	public void tryPopulateFromFile () {
-		if (!this.fileExistsYet) {
-			return;
-		}
+		// Connect to database
 		try {
-			FileReader fr = new FileReader(this.filename);
-			StringBuilder sb = new StringBuilder();
-			int c;
-
-			while ((c = fr.read()) != -1) {
-				sb.append((char) c);
-			}
-
-			JSONObject jo = new JSONObject(sb.toString());
-
-			this.clear();
-			this.idGen = jo.getInt("idGen");
-
-			JSONArray ja = jo.getJSONArray("db");
-			int size = ja.length();
-			for (int i = 0; i < size; i++) {
-				boolean success;
-				try {
-					success = this.addWithID(Flat.fromJson(ja.getJSONObject(i)));
-				} catch (JSONException e) {
-					success = false;
-				}
-				if (!success) {
-					System.err.println("Failed to add the object at position "
-					                   + Integer.toString(i) + " from " + this.filename);
-				}
-			}
-
-			try {
-				this.creationDate = new Date(jo.getLong("creationDate"));
-			} catch (JSONException e) {
-				System.err.println("Couldn\'t find creationDate in " + this.filename);
-				this.creationDate = new Date();
-			}
-
-			fr.close();
-		} catch (IOException e) {
-			System.err.println("Couldn\'t populate storage: the file " + this.filename + " cannot be read");
-		} catch (JSONException e) {
-			System.err.println("Couldn\'t populate storage: The file " + this.filename + " contains invalid JSON");
+			this.dbConnection = DriverManager.getConnection(dbUrl);
+			this.dbStatement = dbConnection.createStatement();
+			System.err.println("Successfully connected to " + dbUrl);
+		} catch (SQLException e) {
+			System.err.println("Failed to connect to the database:");
+			e.printStackTrace();
+			return false;
 		}
+
+		try {
+			// Create the table if there isn't one yet
+
+			this.dbStatement.execute(
+				"CREATE TABLE IF NOT EXISTS flats (" +
+				"id serial primary key not null," +
+				"name text not null," +
+				"coord_x real not null," +
+				"coord_y double precision not null," +
+				"created_unixtime bigint not null," +
+				"area bigint not null," +
+				"num_rooms bigint not null," +
+				"furnish text," +
+				"view text not null," +
+				"transport text," +
+				"house_name text not null," +
+				"house_year integer not null," +
+				"house_num_flats integer not null," +
+				"house_num_lifts bigint not null)");
+		} catch (SQLException e) {
+			System.err.println("Failed to (try to) create table:");
+			e.printStackTrace();
+			return false;
+		}
+
+		// Populate our in-memory representation from the database
+
+		this.set.clear();
+		this.setValuesByID.clear();
+
+		try {
+			final String query = "SELECT * FROM FLATS ORDER BY id;";
+			ResultSet result = this.dbStatement.executeQuery(query);
+			while (result.next()) {
+				Flat element = Flat.fromSQLResult(result, 0);
+				this.set.add(element);
+				this.setValuesByID.put(element.getID(), element);
+			}
+			this.findNewMinimum();
+			System.err.println("Successfully queried the database for items");
+		} catch (SQLException e) {
+			System.err.println("Failed to query the database for items:");
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
 	}
 
 	private void findNewMinimum () {

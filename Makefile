@@ -1,4 +1,4 @@
-CLASSPATH := .:./json-java.jar
+CLASSPATH := .:./postgresql-42.2.21.jar:./json-java.jar
 
 JAVAC := javac
 JAVA := java
@@ -15,7 +15,8 @@ all: client.jar server.jar
 
 server:
 	@echo "Running server.jar"
-	@$(JAVA) -jar server.jar $(PORT)
+	$(JAVA) -jar server.jar $(PORT)
+
 client:
 	@echo "Running client.jar"
 	@$(JAVA) -jar client.jar localhost:$(PORT)

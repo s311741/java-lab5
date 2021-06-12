@@ -2,10 +2,8 @@ package storage;
 
 import java.io.IOException;
 import java.io.Serializable;
-import org.json.JSONObject;
-import org.json.JSONException;
-
 import storage.client.*;
+import java.sql.*;
 
 /**
  * A house in which a Flat can be
@@ -21,13 +19,27 @@ public class House implements Serializable {
 	 * @param prompt the I/O device
 	 */
 	public static House next (Prompter prompt) throws PrompterInputAbortedException {
-		House result = new House();
-		result.name = prompt.nextLine("name: ");
-		result.year = (int) (long) prompt.nextLong("year: ", n -> n > 0 && n <= 699);
-		result.numberOfFlatsOnFloor = (int) (long) prompt.nextLong("flats per floor: ", n -> n > 0);
-		result.numberOfLifts = prompt.nextLong("number of lifts: ", n -> n > 0);
-		return result;
+		House house = new House();
+		house.name = prompt.nextLine("name: ");
+		house.year = (int) (long) prompt.nextLong("year: ", n -> n > 0 && n <= 699);
+		house.numberOfFlatsOnFloor = (int) (long) prompt.nextLong("flats per floor: ", n -> n > 0);
+		house.numberOfLifts = prompt.nextLong("number of lifts: ", n -> n > 0);
+		return house;
 	}
+
+	public static House fromSQLResult (ResultSet s, int i) throws SQLException {
+		House house = new House();
+		house.name = s.getString(++i);
+		house.year = s.getInt(++i);
+		house.numberOfFlatsOnFloor = s.getInt(++i);
+		house.numberOfLifts = s.getLong(++i);
+		return house;
+	}
+
+	public String getName () { return this.name; }
+	public int getYear () { return this.year; }
+	public int getNumberOfFlatsOnFloor () { return this.numberOfFlatsOnFloor; }
+	public long getNumberOfLifts () { return this.numberOfLifts; }
 
 	@Override
 	public String toString () {
@@ -46,25 +58,5 @@ public class House implements Serializable {
 		return this.name.equals(cast.name) && this.year.equals(cast.year)
 		    && this.numberOfFlatsOnFloor == cast.numberOfFlatsOnFloor
 		    && this.numberOfLifts.equals(cast.numberOfLifts);
-	}
-
-	public JSONObject toJson () {
-		JSONObject jo = new JSONObject();
-		jo.put("name", this.name);
-		jo.put("year", this.year);
-		jo.put("numberOfFlatsOnFloor", this.numberOfFlatsOnFloor);
-		jo.put("numberOfLifts", this.numberOfLifts);
-		return jo;
-	}
-
-	public static House fromJson (JSONObject jo) throws JSONException {
-		House result = new House();
-
-		result.name = jo.getString("name");
-		result.year = jo.getInt("year");
-		result.numberOfFlatsOnFloor = jo.getInt("numberOfFlatsOnFloor");
-		result.numberOfLifts = jo.getLong("numberOfLifts");
-
-		return result;
 	}
 }
