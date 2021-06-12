@@ -27,7 +27,7 @@ public class Main {
 			System.exit(1);
 		}
 
-		Thread serverInputThread = new Thread(Main::serverInput);
+		Thread commandLineInputThread = new Thread(Main::commandLineInput);
 
 		DatabaseConnection db = new DatabaseConnection();
 
@@ -38,7 +38,7 @@ public class Main {
 
 		System.err.println("Ready...");
 
-		serverInputThread.start();
+		commandLineInputThread.start();
 
 		ServerCmdReceiver receiver = new ServerCmdReceiver(port);
 		while (true) {
@@ -52,7 +52,7 @@ public class Main {
 		}
 	}
 
-	private static void serverInput () {
+	private static void commandLineInput () {
 		Prompter prompt = new Prompter(new BufferedReader(new InputStreamReader(System.in)),
 			                               new OutputStreamWriter(System.out));
 			try {
@@ -61,7 +61,7 @@ public class Main {
 						System.out.println("Shutting down.");
 						break;
 					} else {
-						System.err.println("The server only accepts the command \"shutdown\". "
+						System.err.println("Server accepts the command \"shutdown\". "
 						                 + "Other commands are only accepted from clients");
 					}
 				}

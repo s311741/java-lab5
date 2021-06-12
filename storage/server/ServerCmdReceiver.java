@@ -1,7 +1,7 @@
 package storage.server;
 
 import java.net.*;
-import java.util.HashMap;
+import java.util.concurrent.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ByteArrayInputStream;
@@ -11,7 +11,8 @@ import storage.cmd.*;
 import storage.*;
 
 public final class ServerCmdReceiver {
-	private HashMap<InetAddress, CmdBuilder> connections;
+	private ConcurrentHashMap<InetAddress, CmdBuilder> connections;
+	private ExecutorService threadPool;
 
 	private byte[] buffer;
 
@@ -29,7 +30,8 @@ public final class ServerCmdReceiver {
 		}
 
 		this.packet = new DatagramPacket(this.buffer, this.buffer.length);
-		this.connections = new HashMap<InetAddress, CmdBuilder>();
+		this.connections = new ConcurrentHashMap<InetAddress, CmdBuilder>();
+		this.threadPool = Executors.newCachedThreadPool();
 	}
 
 	public void processNextPacket () throws IOException {
@@ -43,9 +45,19 @@ public final class ServerCmdReceiver {
 			builder.append(this.buffer, length);
 			NetworkedCmd cmd = builder.getCmd();
 			if (cmd != null) {
-				// The command has been assembled. run it and remove the connection
-				this.tryRunCommand(cmd, senderAddress, this.packet.getPort());
+				// The command has been assembled; launch a worker thread
 				this.connections.remove(senderAddress);
+
+				// HAVE to save port, else the getter hangs the worker thread
+				int port = this.packet.getPort();
+
+				this.threadPool.submit(() -> {
+					try {
+						this.tryRunCommand(cmd, senderAddress, port);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
 			}
 		} else {
 			// A new connection
@@ -73,7 +85,7 @@ public final class ServerCmdReceiver {
 
 		if (cmd instanceof CmdRegister
 		 || UserServer.getServer().isValidLogin(cmd.getLogin())) {
-			System.err.println("Login OK");
+			System.err.println("Login OK - " + cmd.getLogin().getName());
 			response = cmd.runOnServer();
 		} else {
 			System.err.println("Rejecting: invalid login");

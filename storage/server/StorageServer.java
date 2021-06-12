@@ -2,8 +2,7 @@ package storage.server;
 
 import java.io.*;
 import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.HashMap;
+import java.util.concurrent.*;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import storage.*;
@@ -23,8 +22,7 @@ public class StorageServer implements Iterable<Flat> {
 	}
 
 	private static Date creationDate = new Date();
-	private LinkedHashSet<Flat> set = new LinkedHashSet<Flat>();
-	private HashMap<Integer, Flat> setValuesByID = new HashMap<Integer, Flat>();
+	private ConcurrentHashMap<Integer, Flat> values = new ConcurrentHashMap<Integer, Flat>();
 	private Flat currentMinimum = null;
 
 	private DatabaseConnection db;
@@ -33,9 +31,8 @@ public class StorageServer implements Iterable<Flat> {
 	 * Get some human-readable information about the internals of the storage
 	 */
 	public String info () {
-		return "Collection using " + this.set.getClass().toString() + " and " +
-		       this.setValuesByID.getClass().toString() + "\n" +
-		       Integer.toString(set.size()) + " elements\n" +
+		return "Collection using " + this.values.getClass().getSimpleName() + "\n" +
+		       Integer.toString(this.values.size()) + " elements\n" +
 		       (this.currentMinimum == null
 		                ? "Minimum doesn\'t exist"
 		                : "Minimum has id " + this.currentMinimum.getID().toString()) + "\n" +
@@ -69,7 +66,7 @@ public class StorageServer implements Iterable<Flat> {
 			return false;
 		}
 
-		if (this.setValuesByID.put(element.getID(), element) != null) {
+		if (this.values.put(element.getID(), element) != null) {
 			System.err.println("Managed to assign an element an existing ID, somehow");
 			System.exit(1);
 		}
@@ -78,7 +75,7 @@ public class StorageServer implements Iterable<Flat> {
 			this.currentMinimum = element;
 		}
 
-		return this.set.add(element);
+		return true;
 	}
 
 	/**
@@ -86,7 +83,7 @@ public class StorageServer implements Iterable<Flat> {
 	 * @param id ID of the element to remove
 	 */
 	public boolean removeByID (int id) {
-		Flat element = this.setValuesByID.get(id);
+		Flat element = this.values.get(id);
 		if (element == null) {
 			return false;
 		}
@@ -99,8 +96,7 @@ public class StorageServer implements Iterable<Flat> {
 			return false;
 		}
 
-		this.setValuesByID.remove(id);
-		this.set.remove(element);
+		this.values.remove(id);
 
 		if (element == this.currentMinimum) {
 			this.findNewMinimum();
@@ -121,12 +117,11 @@ public class StorageServer implements Iterable<Flat> {
 		}
 
 		this.currentMinimum = null;
-		this.set.clear();
-		this.setValuesByID.clear();
+		this.values.clear();
 	}
 
 	public Stream<Flat> stream () {
-		return this.set.stream();
+		return this.values.values().stream();
 	}
 
 	/**
@@ -137,15 +132,15 @@ public class StorageServer implements Iterable<Flat> {
 	}
 
 	public boolean isEmpty () {
-		return this.set.isEmpty();
+		return this.values.isEmpty();
 	}
 
 	@Override
 	public Iterator<Flat> iterator () {
-		return this.set.iterator();
+		return this.values.values().iterator();
 	}
 
-	public boolean connect (DatabaseConnection db) {
+	public synchronized boolean connect (DatabaseConnection db) {
 		this.db = db;
 
 		try {
@@ -174,16 +169,14 @@ public class StorageServer implements Iterable<Flat> {
 
 		// Populate in-memory representation from the database
 
-		this.set.clear();
-		this.setValuesByID.clear();
+		this.values.clear();
 
 		try {
 			final String query = "SELECT * FROM FLATS ORDER BY id";
 			ResultSet result = this.db.getStatement().executeQuery(query);
 			while (result.next()) {
 				Flat element = Flat.fromSQLResult(result, 0);
-				this.set.add(element);
-				this.setValuesByID.put(element.getID(), element);
+				this.values.put(element.getID(), element);
 			}
 			this.findNewMinimum();
 			System.err.println("Successfully queried the database for items");
@@ -196,9 +189,9 @@ public class StorageServer implements Iterable<Flat> {
 		return true;
 	}
 
-	private void findNewMinimum () {
+	private synchronized void findNewMinimum () {
 		this.currentMinimum = null;
-		for (Flat flat: this.set) {
+		for (Flat flat: this.values.values()) {
 			if (this.currentMinimum == null || flat.compareTo(this.currentMinimum) < 0) {
 				this.currentMinimum = flat;
 			}
