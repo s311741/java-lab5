@@ -29,7 +29,10 @@ public class Main {
 
 		Thread serverInputThread = new Thread(Main::serverInput);
 
-		if (!StorageServer.getServer().tryConnectToDatabase()) {
+		DatabaseConnection db = new DatabaseConnection();
+
+		if (!StorageServer.getServer().connect(db)
+		 || !UserServer.getServer().connect(db)) {
 			System.exit(1);
 		}
 

@@ -15,6 +15,7 @@ import java.io.ObjectInputStream;
 public class StorageClient {
 	private DatagramChannel channel;
 	private SocketAddress address;
+	private UserCredentials login = null;
 
 	private static StorageClient instance = null;
 
@@ -45,8 +46,31 @@ public class StorageClient {
 		instance = new StorageClient(addr);
 	}
 
+	public boolean setLoginData (String name, String password) {
+		if (this.login != null) {
+			return false;
+		}
+		this.login = new UserCredentials(name, password);
+		return true;
+	}
+
+	public boolean removeLoginData () {
+		if (this.login == null) {
+			return false;
+		}
+		this.login = null;
+		return true;
+	}
+
 	public boolean runCommand (String[] arguments, Prompter prompter) {
 		Cmd cmd = Cmd.getCommandFromWords(arguments, prompter);
+
+		if (this.login == null && (cmd instanceof NetworkedCmd)) {
+			System.err.println("Use \'login_set\' to provide credentials to the server "
+			                 + "before sending networked commands.");
+			return false;
+		}
+
 		boolean success = cmd.runOnClient(arguments, prompter);
 		if (!success) {
 			return false;
@@ -55,7 +79,7 @@ public class StorageClient {
 		if (cmd instanceof NetworkedCmd) {
 			final Response response;
 			try {
-				this.sendNetworkedCmd((NetworkedCmd) cmd);
+				this.sendNetworkedCmd(((NetworkedCmd) cmd).setLogin(this.login));
 				response = this.receiveResponse();
 			} catch (SocketTimeoutException e) {
 				System.err.println("Response from server timed out: cannot be sure the command went through");

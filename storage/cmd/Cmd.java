@@ -22,6 +22,7 @@ public abstract class Cmd {
 	 */
 	public abstract boolean runOnClient (String[] arguments, Prompter prompter);
 
+
 	private static final HashMap<String, Class<? extends Cmd>> cmdsByName = new HashMap();
 	static {
 		cmdsByName.put("add", CmdAdd.class);
@@ -34,6 +35,9 @@ public abstract class Cmd {
 		cmdsByName.put("help", CmdHelp.class);
 		cmdsByName.put("history", CmdHistory.class);
 		cmdsByName.put("info", CmdInfo.class);
+		cmdsByName.put("login_set", CmdSetLogin.class);
+		cmdsByName.put("login_unset", CmdUnsetLogin.class);
+		cmdsByName.put("register", CmdRegister.class);
 		cmdsByName.put("remove_by_id", CmdRemoveByID.class);
 		cmdsByName.put("remove_lower", CmdRemoveLower.class);
 		cmdsByName.put("show", CmdShow.class);

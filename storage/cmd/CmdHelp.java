@@ -13,6 +13,8 @@ public final class CmdHelp extends Cmd {
 		"commands:\n" +
 		"help           print this message\n" +
 		"exit           exit without saving\n" +
+		"login_set      provide user credentials\n" +
+		"login_unset    stop providing current credentials\n" +
 		"info           show info about the database\n" +
 		"show           print out all elements in the collection\n" +
 		"add            add an element\n" +

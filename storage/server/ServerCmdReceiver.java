@@ -44,7 +44,7 @@ public final class ServerCmdReceiver {
 			NetworkedCmd cmd = builder.getCmd();
 			if (cmd != null) {
 				// The command has been assembled. run it and remove the connection
-				this.runCommand(cmd, senderAddress, this.packet.getPort());
+				this.tryRunCommand(cmd, senderAddress, this.packet.getPort());
 				this.connections.remove(senderAddress);
 			}
 		} else {
@@ -66,10 +66,19 @@ public final class ServerCmdReceiver {
 		}
 	}
 
-	private void runCommand (NetworkedCmd cmd, InetAddress senderAddress, int port) throws IOException {
-		System.err.println("Running command " + cmd.getClass().getSimpleName());
+	private void tryRunCommand (NetworkedCmd cmd, InetAddress senderAddress, int port) throws IOException {
+		System.err.println("Received command " + cmd.getClass().getSimpleName());
 
-		Response response = cmd.runOnServer();
+		Response response;
+
+		if (cmd instanceof CmdRegister
+		 || UserServer.getServer().isValidLogin(cmd.getLogin())) {
+			System.err.println("Login OK");
+			response = cmd.runOnServer();
+		} else {
+			System.err.println("Rejecting: invalid login");
+			response = new Response(false, "Invalid login");
+		}
 
 		// Send response
 		final byte[] bufferResponse;

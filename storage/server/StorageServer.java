@@ -23,14 +23,11 @@ public class StorageServer implements Iterable<Flat> {
 	}
 
 	private static Date creationDate = new Date();
-
 	private LinkedHashSet<Flat> set = new LinkedHashSet<Flat>();
 	private HashMap<Integer, Flat> setValuesByID = new HashMap<Integer, Flat>();
 	private Flat currentMinimum = null;
 
-	private static final String dbUrl = "jdbc:postgresql://localhost:5432/flats?user=postgres";
-	private Connection dbConnection;
-	private Statement dbStatement;
+	private DatabaseConnection db;
 
 	/**
 	 * Get some human-readable information about the internals of the storage
@@ -56,7 +53,7 @@ public class StorageServer implements Iterable<Flat> {
 		}
 
 		try {
-			PreparedStatement st = element.prepareStatement(this.dbConnection, "flats");
+			PreparedStatement st = element.prepareStatement(this.db.getConnection(), "flats");
 			if (st.executeUpdate() == 0) {
 				throw new SQLException("No rows affected");
 			}
@@ -95,7 +92,7 @@ public class StorageServer implements Iterable<Flat> {
 		}
 
 		try {
-			this.dbStatement.execute("DELETE FROM flats WHERE id = " + id);
+			this.db.getStatement().execute("DELETE FROM flats WHERE id = " + id);
 		} catch (SQLException e) {
 			System.err.println("Failed to delete element:");
 			e.printStackTrace();
@@ -116,7 +113,7 @@ public class StorageServer implements Iterable<Flat> {
 	 */
 	public void clear () {
 		try {
-			this.dbStatement.execute("DELETE FROM flats");
+			this.db.getStatement().execute("DELETE FROM flats");
 		} catch (SQLException e) {
 			System.err.println("Failed to clear database:");
 			e.printStackTrace();
@@ -148,31 +145,12 @@ public class StorageServer implements Iterable<Flat> {
 		return this.set.iterator();
 	}
 
-	public boolean tryConnectToDatabase () {
-		// Load database driver
-		try {
-			Class.forName("org.postgresql.Driver");
-		} catch (ClassNotFoundException e) {
-			System.err.println("Cannot load DB driver:");
-			e.printStackTrace();
-			return false;
-		}
-
-		// Connect to database
-		try {
-			this.dbConnection = DriverManager.getConnection(dbUrl);
-			this.dbStatement = dbConnection.createStatement();
-			System.err.println("Successfully connected to " + dbUrl);
-		} catch (SQLException e) {
-			System.err.println("Failed to connect to the database:");
-			e.printStackTrace();
-			return false;
-		}
+	public boolean connect (DatabaseConnection db) {
+		this.db = db;
 
 		try {
-			// Create the table if there isn't one yet
-
-			this.dbStatement.execute(
+			// Create the tables if they aren't there yet
+			this.db.getStatement().execute(
 				"CREATE TABLE IF NOT EXISTS flats (" +
 				"id serial primary key not null," +
 				"name text not null," +
@@ -189,19 +167,19 @@ public class StorageServer implements Iterable<Flat> {
 				"house_num_flats integer not null," +
 				"house_num_lifts bigint not null)");
 		} catch (SQLException e) {
-			System.err.println("Failed to (try to) create table:");
+			System.err.println("Failed to (try to) create flats table:");
 			e.printStackTrace();
 			return false;
 		}
 
-		// Populate our in-memory representation from the database
+		// Populate in-memory representation from the database
 
 		this.set.clear();
 		this.setValuesByID.clear();
 
 		try {
-			final String query = "SELECT * FROM FLATS ORDER BY id;";
-			ResultSet result = this.dbStatement.executeQuery(query);
+			final String query = "SELECT * FROM FLATS ORDER BY id";
+			ResultSet result = this.db.getStatement().executeQuery(query);
 			while (result.next()) {
 				Flat element = Flat.fromSQLResult(result, 0);
 				this.set.add(element);
