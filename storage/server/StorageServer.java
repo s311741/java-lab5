@@ -199,6 +199,8 @@ public class StorageServer implements Iterable<Flat> {
 		} catch (SQLException e) {
 			System.err.println("Failed to query the database for items:");
 			e.printStackTrace();
+			System.err.println("Will drop table.");
+			this.forceDropTable();
 			return false;
 		}
 

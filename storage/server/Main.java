@@ -56,6 +56,8 @@ public class Main {
 					break;
 				} else if (line.equals("dropquit")) {
 					StorageServer.getServer().forceDropTable();
+					UserServer.getServer().forceDropTable();
+					break;
 				} else {
 					System.err.println("Server accepts the commands \'shutdown\', \'dropquit\'. "
 					                 + "Other commands are only accepted from clients");

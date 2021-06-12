@@ -109,7 +109,8 @@ public final class Flat implements Comparable<Flat>, Serializable {
 		       "\nview: " + this.view.toString() +
 		       (this.transport == null ? "" : "\ntransport: " + this.transport.toString()) +
 		       "\nhouse: " + this.house.toString() +
-		       "\ncreated at: " + this.creationDate.toString() + "\n";
+		       "\ncreated at: " + this.creationDate.toString() +
+		       "\ncreated by: " + this.creatorName + "\n";
 	}
 
 	/**
@@ -167,7 +168,7 @@ public final class Flat implements Comparable<Flat>, Serializable {
 	}
 
 	public PreparedStatement prepareStatement (Connection conn, String tableName) throws SQLException {
-		final String tableFields = "(name,creatorName,coord_x,coord_y,created_unixtime,area,num_rooms,"
+		final String tableFields = "(name,creator_name,coord_x,coord_y,created_unixtime,area,num_rooms,"
 		                          + "furnish,view,transport,house_name,"
 		                          + "house_year,house_num_flats,house_num_lifts)";
 		final String questionMarks = "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";

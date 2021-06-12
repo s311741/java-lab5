@@ -59,8 +59,7 @@ public class UserServer {
 			st.setString(2, login.getHash());
 			st.execute();
 		} catch (SQLException e) {
-			System.err.println("Error adding user:");
-			e.printStackTrace();
+			System.err.println("Error adding user: " + e.getMessage());
 			return false;
 		}
 
@@ -72,5 +71,14 @@ public class UserServer {
 		if (login == null) System.err.println("WTF???");
 		String hash = this.users.get(login.getName());
 		return (hash != null) && hash.equals(login.getHash());
+	}
+
+	public void forceDropTable () {
+		try {
+			this.db.getStatement().execute("DROP TABLE IF EXISTS users");
+		} catch (SQLException e) {
+			System.err.println("Failed to drop users table:");
+			e.printStackTrace();
+		}
 	}
 }
