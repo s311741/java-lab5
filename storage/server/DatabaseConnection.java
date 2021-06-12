@@ -3,11 +3,10 @@ package storage.server;
 import java.sql.*;
 
 public class DatabaseConnection {
-	private static final String url = "jdbc:postgresql://localhost:5432/flats?user=postgres";
 	private Connection connection;
 	private Statement statement;
 
-	public DatabaseConnection () {
+	public DatabaseConnection (String username, String password) {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {
@@ -17,6 +16,7 @@ public class DatabaseConnection {
 		}
 
 		try {
+			String url = "jdbc:postgresql://pg:5432/studs?user=" + username + "&password=" + password;
 			this.connection = DriverManager.getConnection(url);
 			this.statement = this.connection.createStatement();
 		} catch (SQLException e) {

@@ -9,17 +9,13 @@ import storage.*;
 import storage.cmd.*;
 
 public class Main {
-	private static boolean mustShutdown = false;
-	public static void scheduleShutdown () {
-		mustShutdown = true;
-	}
+	private static int port = 0;
 
 	public static void main (String[] args) {
 		if (args.length < 1) {
 			System.err.println("Must specify port");
 			System.exit(1);
 		}
-		int port = 0;
 		try {
 			port = Integer.parseInt(args[0]);
 		} catch (NumberFormatException e) {
@@ -27,9 +23,17 @@ public class Main {
 			System.exit(1);
 		}
 
-		Thread commandLineInputThread = new Thread(Main::commandLineInput);
+		Prompter prompt = new Prompter(new BufferedReader(new InputStreamReader(System.in)),
+		                               new OutputStreamWriter(System.out));
 
-		DatabaseConnection db = new DatabaseConnection();
+		DatabaseConnection db = null;
+		try {
+			String username = prompt.nextLine("Database username: ");
+			String password = prompt.nextLine("Database password: ");
+			db = new DatabaseConnection(username, password);
+		} catch (PrompterInputAbortedException e) {
+			System.exit(0);
+		}
 
 		if (!StorageServer.getServer().connect(db)
 		 || !UserServer.getServer().connect(db)) {
@@ -37,9 +41,25 @@ public class Main {
 		}
 
 		System.err.println("Ready...");
+		// Thread commandLineInputThread = new Thread(Main::commandLineInput);
+		Thread work = new Thread(Main::workerThread);
+		work.start();
 
-		commandLineInputThread.start();
+		try {
+			for (String line; (line = prompt.nextLine("")) != null; ) {
+				if (line.equals("shutdown")) {
+					System.out.println("Shutting down.");
+					break;
+				} else {
+					System.err.println("Server accepts the command \"shutdown\". "
+					                 + "Other commands are only accepted from clients");
+				}
+			}
+		} catch (PrompterInputAbortedException e) { }
+		System.exit(0);
+	}
 
+	private static void workerThread () {
 		ServerCmdReceiver receiver = new ServerCmdReceiver(port);
 		while (true) {
 			try {
@@ -50,23 +70,5 @@ public class Main {
 				continue;
 			}
 		}
-	}
-
-	private static void commandLineInput () {
-		Prompter prompt = new Prompter(new BufferedReader(new InputStreamReader(System.in)),
-			                               new OutputStreamWriter(System.out));
-			try {
-				for (String line; (line = prompt.nextLine("")) != null; ) {
-					if (line.equals("shutdown")) {
-						System.out.println("Shutting down.");
-						break;
-					} else {
-						System.err.println("Server accepts the command \"shutdown\". "
-						                 + "Other commands are only accepted from clients");
-					}
-				}
-			} catch (PrompterInputAbortedException e) { }
-
-			System.exit(0);
 	}
 }
