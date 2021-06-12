@@ -6,7 +6,7 @@ public class DatabaseConnection {
 	private Connection connection;
 	private Statement statement;
 
-	public DatabaseConnection (String username, String password) {
+	public DatabaseConnection (String username, String password, String host, String dbName) {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {
@@ -16,7 +16,14 @@ public class DatabaseConnection {
 		}
 
 		try {
-			String url = "jdbc:postgresql://pg:5432/studs?user=" + username + "&password=" + password;
+			String url = "jdbc:postgresql://" + host + ":5432/" + dbName + "?user=" + username;
+			if (password != null && !password.isEmpty()) {
+				url += "&password=" + password;
+			}
+
+			System.err.println("url:");
+			System.err.println(url);
+
 			this.connection = DriverManager.getConnection(url);
 			this.statement = this.connection.createStatement();
 		} catch (SQLException e) {

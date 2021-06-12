@@ -14,6 +14,7 @@ import java.sql.*;
 public final class Flat implements Comparable<Flat>, Serializable {
 	private Integer id = null;
 	private String name;
+	private String creatorName = null;
 	private Coordinates coordinates;
 	private Date creationDate;
 	private Long area;
@@ -56,10 +57,8 @@ public final class Flat implements Comparable<Flat>, Serializable {
 		return result;
 	}
 
-	/**
-	 * Internal ID within the collection
-	 */
 	public Integer getID () { return this.id; }
+	public String getCreatorName () { return this.creatorName; }
 	public String getName () { return this.name; }
 	/**
 	 * State of furnishment
@@ -82,6 +81,20 @@ public final class Flat implements Comparable<Flat>, Serializable {
 			throw new Error("Tried to set the ID of an element to null");
 		}
 		this.id = id;
+		return this;
+	}
+
+	public Flat setCreatorName (String name) {
+		if (this.creatorName != null) {
+			throw new Error("Tries to set a creator name for an element which already has one");
+		}
+		return this.forceUpdateCreatorName(name);
+	}
+	public Flat forceUpdateCreatorName (String name) {
+		if (name == null) {
+			throw new Error("Tried to set the creator name of an element to null");
+		}
+		this.creatorName = name;
 		return this;
 	}
 
@@ -154,15 +167,16 @@ public final class Flat implements Comparable<Flat>, Serializable {
 	}
 
 	public PreparedStatement prepareStatement (Connection conn, String tableName) throws SQLException {
-		final String tableFields = "(name,coord_x,coord_y,created_unixtime,area,num_rooms,"
+		final String tableFields = "(name,creatorName,coord_x,coord_y,created_unixtime,area,num_rooms,"
 		                          + "furnish,view,transport,house_name,"
 		                          + "house_year,house_num_flats,house_num_lifts)";
-		final String questionMarks = "(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		final String questionMarks = "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		final String query = "INSERT INTO " + tableName + tableFields + " VALUES " + questionMarks;
 
 		PreparedStatement s = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 		int i = 0;
 		s.setString(++i, this.name);
+		s.setString(++i, this.creatorName);
 		s.setFloat (++i, this.coordinates.getX());
 		s.setDouble(++i, this.coordinates.getY());
 		s.setLong  (++i, this.creationDate.getTime());

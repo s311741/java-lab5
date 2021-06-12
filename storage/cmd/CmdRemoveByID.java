@@ -28,6 +28,6 @@ public final class CmdRemoveByID extends NetworkedCmd {
 
 	@Override
 	public Response runOnServer () {
-		return new Response(StorageServer.getServer().removeByID(this.id));
+		return new Response(StorageServer.getServer().removeByID(this.id, this.login.getName()));
 	}
 }

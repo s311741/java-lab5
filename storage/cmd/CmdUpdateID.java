@@ -36,11 +36,11 @@ public final class CmdUpdateID extends NetworkedCmd {
 	@Override
 	public Response runOnServer () {
 		StorageServer server = StorageServer.getServer();
-		boolean success = server.removeByID(this.element.getID());
+		boolean success = server.removeByID(this.element.getID(), this.login.getName());
 		if (!success) {
 			return new Response(false, "Failed to remove old element with id " + this.element.getID());
 		}
-		success = server.add(element);
+		success = server.add(element, this.login.getName());
 		if (!success) {
 			return new Response(false, "Failed to insert the new element with id " + this.element.getID());
 		}

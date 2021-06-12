@@ -29,7 +29,7 @@ public final class CmdAddIfMin extends NetworkedCmd {
 
 		Flat minimum = server.getCurrentMinimum();
 		if (minimum == null || this.element.compareTo(minimum) < 0) {
-			server.add(element);
+			server.add(element, this.login.getName());
 		}
 
 		return new Response(true);

@@ -10,14 +10,18 @@ import storage.cmd.*;
 
 public class Main {
 	private static int port = 0;
+	private static String host = null;
+	private static String databaseName = null;
 
 	public static void main (String[] args) {
-		if (args.length < 1) {
-			System.err.println("Must specify port");
+		if (args.length != 3) {
+			System.err.println("Must specify: port, host, database");
 			System.exit(1);
 		}
 		try {
 			port = Integer.parseInt(args[0]);
+			host = args[1];
+			databaseName = args[2];
 		} catch (NumberFormatException e) {
 			System.err.println("Invalid port specified");
 			System.exit(1);
@@ -29,8 +33,8 @@ public class Main {
 		DatabaseConnection db = null;
 		try {
 			String username = prompt.nextLine("Database username: ");
-			String password = prompt.nextLine("Database password: ");
-			db = new DatabaseConnection(username, password);
+			String password = prompt.nextLine("Database password: ", s -> true);
+			db = new DatabaseConnection(username, password, host, databaseName);
 		} catch (PrompterInputAbortedException e) {
 			System.exit(0);
 		}
@@ -50,8 +54,10 @@ public class Main {
 				if (line.equals("shutdown")) {
 					System.out.println("Shutting down.");
 					break;
+				} else if (line.equals("dropquit")) {
+					StorageServer.getServer().forceDropTable();
 				} else {
-					System.err.println("Server accepts the command \"shutdown\". "
+					System.err.println("Server accepts the commands \'shutdown\', \'dropquit\'. "
 					                 + "Other commands are only accepted from clients");
 				}
 			}

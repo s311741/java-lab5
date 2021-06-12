@@ -5,6 +5,8 @@ JAVA := java
 JAR := jar
 
 PORT := 13666
+HOST := pg
+DBNAME := studs
 
 FILES_CLASS_COMMON := $(wildcard "storage/*.class" "storage/cmd/*.class")
 FILES_CLASS_CLIENT := $(FILES_CLASS_COMMON) $(wildcard "storage/client/*.class")
@@ -15,7 +17,7 @@ all: client.jar server.jar
 
 server:
 	@echo "Running server.jar"
-	$(JAVA) -jar server.jar $(PORT)
+	$(JAVA) -jar server.jar $(PORT) $(HOST) $(DBNAME)
 
 client:
 	@echo "Running client.jar"

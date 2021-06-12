@@ -24,6 +24,6 @@ public final class CmdAdd extends NetworkedCmd {
 
 	@Override
 	public Response runOnServer () {
-		return new Response(StorageServer.getServer().add(this.element));
+		return new Response(StorageServer.getServer().add(this.element, this.login.getName()));
 	}
 }

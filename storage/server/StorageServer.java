@@ -43,11 +43,13 @@ public class StorageServer implements Iterable<Flat> {
 	 * Add an element, autogenerating its ID
 	 * @param element The element to add (with the ID null)
 	 */
-	public boolean add (Flat element) {
+	public boolean add (Flat element, String userName) {
 		if (element.getID() != null) {
 			System.err.println("Received an element with non-null ID");
 			return false;
 		}
+
+		element.setCreatorName(userName);
 
 		try {
 			PreparedStatement st = element.prepareStatement(this.db.getConnection(), "flats");
@@ -82,9 +84,13 @@ public class StorageServer implements Iterable<Flat> {
 	 * Remove an element, given its id
 	 * @param id ID of the element to remove
 	 */
-	public boolean removeByID (int id) {
+	public boolean removeByID (int id, String userName) {
 		Flat element = this.values.get(id);
 		if (element == null) {
+			return false;
+		}
+
+		if (!element.getCreatorName().equals(userName)) {
 			return false;
 		}
 
@@ -140,6 +146,15 @@ public class StorageServer implements Iterable<Flat> {
 		return this.values.values().iterator();
 	}
 
+	public synchronized void forceDropTable () {
+		try {
+			this.db.getStatement().execute("DROP TABLE IF EXISTS flats");
+		} catch (SQLException e) {
+			System.err.println("Failed to drop table:");
+			e.printStackTrace();
+		}
+	}
+
 	public synchronized boolean connect (DatabaseConnection db) {
 		this.db = db;
 
@@ -148,6 +163,7 @@ public class StorageServer implements Iterable<Flat> {
 			this.db.getStatement().execute(
 				"CREATE TABLE IF NOT EXISTS flats (" +
 				"id serial primary key not null," +
+				"creator_name text not null," +
 				"name text not null," +
 				"coord_x real not null," +
 				"coord_y double precision not null," +
